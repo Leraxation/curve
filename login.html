@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color:#0f172a; color:#e2e8f0; font-family: Inter, system-ui, -apple-system, sans-serif }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:0.75rem; box-shadow:0 6px 18px rgba(2,6,23,0.35) }
+    .input-dark { background:#0f172a; border:1px solid #334155; color:#fff }
+    .input-dark:focus { outline:none; border-color:#3b82f6 }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-sm card p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <div class="h-6 w-6 rounded bg-gradient-to-tr from-blue-500 to-emerald-500"></div>
+      <div class="text-white font-bold tracking-wide">Curve Analyzer</div>
+    </div>
+    <h1 class="text-lg font-bold mb-2">Sign In</h1>
+    <p class="text-slate-400 text-sm mb-4">Enter your credentials to access the platform.</p>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-slate-400 mb-1 block">Username</label>
+        <input id="username" class="w-full p-2 rounded input-dark text-sm">
+      </div>
+      <div>
+        <label class="text-xs text-slate-400 mb-1 block">Password</label>
+        <input id="password" type="password" class="w-full p-2 rounded input-dark text-sm">
+      </div>
+      <button id="login-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded">Sign In</button>
+      <div id="login-msg" class="text-xs text-red-400 hidden"></div>
+    </div>
+    <div class="text-xs text-slate-500 mt-4">Security: Sessions are cookie-based. No credentials are stored in the browser.</div>
+  </div>
+  <script>
+    async function doLogin(){
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+      const btn = document.getElementById('login-btn');
+      const msg = document.getElementById('login-msg');
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
+      msg.classList.add('hidden');
+      try {
+        const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username:u, password:p }) });
+        if (!r.ok) {
+          msg.textContent = 'Invalid username or password';
+          msg.classList.remove('hidden');
+        } else {
+          location.replace('/index.html');
+        }
+      } catch {
+        msg.textContent = 'Server error';
+        msg.classList.remove('hidden');
+      }
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    document.getElementById('password').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
+  </script>
+</body>
+</html>
