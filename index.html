@@ -1,77 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Distribution Curve Analyzer</title>
+<style>
+  body{margin:0;background:#0b0b0b;color:#e7e7e7;font-family:system-ui,Arial,sans-serif}
+  .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+  .card{background:#121212;border:1px solid #1e1e1e;border-radius:10px;padding:14px;margin-bottom:16px}
+  label{font-size:12px;opacity:.85}
+  select,input[type="text"]{background:#131722;color:#e7e7e7;border:1px solid #2b2f3a;border-radius:8px;padding:8px 10px}
+  input[type="file"]{color:#e7e7e7}
+  .pill{padding:6px 10px;border:1px solid #2b2f3a;border-radius:999px;background:#1a1f2b;color:#cbd5e1}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  table{width:100%;border-collapse:collapse}
+  th,td{border:1px solid #2b2f3a;padding:8px;text-align:right;font-size:13px}
+  th:first-child,td:first-child{text-align:left}
+  th{background:#151a24}
+  .title{font-size:18px;margin:0 0 8px}
+  .subtitle{font-size:12px;opacity:.8;margin-bottom:6px}
+  .muted{opacity:.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="title">Performance Distribution</div>
+    <div class="row">
+      <div>
+        <label>Upload Excel (.xlsx/.csv)</label><br>
+        <input id="file" type="file" accept=".xlsx,.xls,.csv">
+      </div>
+      <div>
+        <label>Rating Year</label><br>
+        <select id="ratingYear">
+          <option value="2024">2024</option>
+          <option value="2025" selected>2025</option>
+        </select>
+      </div>
+      <div>
+        <label aria-label="Role Curve">Role Curve</label><br>
+        <select id="roleCurve" aria-label="Role Curve">
+          <option value="none">None</option>
+          <option value="N1">N1</option>
+          <option value="N2">N2</option>
+          <option value="N3">N3</option>
+          <option value="N4">N4</option>
+          <option value="N5">N5</option>
+        </select>
+      </div>
+      <div>
+        <label>Search departments</label><br>
+        <input id="departments-search" type="text" placeholder="Type department or N1..N5">
+      </div>
+      <div>
+        <label>Labels</label><br>
+        <select id="labels-mode">
+          <option value="%">%</option>
+          <option value="#">#</option>
+        </select>
+      </div>
+      <div>
+        <label>Currency</label><br>
+        <select id="currency-select">
+          <option value="AED">AED</option>
+          <option value="USD">$</option>
+          <option value="EUR">€</option>
+          <option value="GBP">£</option>
+          <option value="OMR">OMR</option>
+        </select>
+      </div>
+      <div class="pill"><span class="muted">Total Count:</span> <span id="totalCount">0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="subtitle">Distribution Comparison</div>
+    <canvas id="chart" height="260"></canvas>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="subtitle">Targets (%)</div>
+      <table>
+        <thead><tr><th>Bucket</th><th>Target %</th></tr></thead>
+        <tbody id="target-rows"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="subtitle">Actuals</div>
+      <table>
+        <thead><tr><th>Bucket</th><th>Count</th><th>Actual %</th></tr></thead>
+        <tbody id="actual-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <script>
-(function(){
-  var rc=document.querySelector('select#roleCurve')||document.querySelector('select[name="roleCurve"]')||document.querySelector('select[aria-label="Role Curve"]');
-  ['N1','N2','N3','N4','N5'].forEach(function(v){
-    if(!rc)return;
-    var has=[].some.call(rc.options,function(o){return (o.value||o.textContent).trim().toUpperCase()===v});
-    if(!has){var opt=document.createElement('option');opt.value=v;opt.textContent=v;rc.appendChild(opt)}
-  });
-  window.state=window.state||{};window.state.roleCurve=window.state.roleCurve||'none';
-  function U(x){return String(x||'').trim().toUpperCase()}
-  function filterByRole(rows,role){if(!role||role==='none')return rows;return rows.filter(function(r){return U(r['Position Level'])===U(role)})}
-  var origGet=window.getFilteredRowsAll||null;
-  window.getFilteredRowsAll=function(){
-    var base=origGet?origGet():(window.applyExistingFilters?window.applyExistingFilters(window.fullDataRows||[]):(window.fullDataRows||[]));
-    return filterByRole(base,window.state.roleCurve)
-  };
-  if(rc){rc.addEventListener('change',function(){window.state.roleCurve=this.value;window.updateAll&&window.updateAll()})}
-})();
-(function(){
-  var s=document.getElementById('departments-search');if(!s)return;
-  var orig=window.applyExistingFilters||null;
-  function U(x){return String(x||'').trim().toUpperCase()}
-  window.applyExistingFilters=function(rows){
-    var r=orig?orig(rows):rows;
-    var q=U(s.value||'');
-    if(/^N[1-5]$/.test(q))r=r.filter(function(x){return U(x['Position Level'])===q});else if(q)r=r.filter(function(x){return String(x.Department||'').toUpperCase().includes(q)});
-    return r
-  };
-  s.addEventListener('input',function(){window.updateAll&&window.updateAll()})
-})();
-(function(){
-  var sel=document.getElementById('currency-select')||document.querySelector('select[aria-label="Currency"]');
-  if(sel){
-    var has=[].some.call(sel.options,function(o){return o.value==='OMR'});
-    if(!has){var o=document.createElement('option');o.value='OMR';o.textContent='OMR';sel.appendChild(o)}
-  }
-  window.currencySymbols=Object.assign({},window.currencySymbols||{},{OMR:'ر.ع.'});
-  window.currencyRates=Object.assign({},window.currencyRates||{},{OMR:1});
-})();
-(function(){
-  function maxOf(a){return a.reduce(function(m,v){return v>m?v:m},0)}
-  function smooth(a){var k=[0.06136,0.24477,0.38774,0.24477,0.06136],o=[];for(var i=0;i<a.length;i++){var s=0;for(var j=-2;j<=2;j++){var idx=Math.max(0,Math.min(a.length-1,i+j));s+=a[idx]*k[j+2]}o.push(s)}return o}
-  function scaleTo(t,s,f){var T=maxOf(t),S=maxOf(s)||1,M=(T*f)/S;return s.map(function(v){return v*M})}
-  function patch(ch){
-    if(!ch||!ch.config)return;
-    (ch.config.data.datasets||[]).forEach(function(ds){var name=String(ds.label||'').toLowerCase();if(name.indexOf('target')>-1){ds.datalabels=Object.assign({},ds.datalabels||{},{display:false})}});
-    ch.options.plugins=ch.options.plugins||{};
-    ch.options.plugins.datalabels=Object.assign(ch.options.plugins.datalabels||{},{
-      display:function(ctx){return String(ctx.dataset.label||'').toLowerCase().indexOf('target')===-1},
-      clamp:true,clip:true,align:'top',anchor:'end',offset:4
-    });
-    ch.options.scales=ch.options.scales||{};
-    ch.options.scales.y=Object.assign(ch.options.scales.y||{},{beginAtZero:true,grace:'10%'});
-    var bar=(ch.config.data.datasets||[]).find(function(d){return /bar/i.test(String(d.type||'bar'))});
-    var line=(ch.config.data.datasets||[]).find(function(d){return /line/i.test(String(d.type||''))||(!d.type&&/trend/i.test(String(d.label||'')))});
-    if(line){
-      line.cubicInterpolationMode='monotone';line.tension=0.2;line.yAxisID='y';
-      var series=Array.isArray(bar&&bar.data)?bar.data.map(Number):[];
-      if(series.length){
-        var tr=scaleTo(series,smooth(series),0.90);
-        var yMax=(ch.options.scales.y&&ch.options.scales.y.max)||Math.ceil(maxOf(series)*1.15)||100;
-        line.data=tr.map(function(v){return Math.min(v,yMax*0.98)})
-      }
-    }
-  }
-  function run(){
-    var cvs=[].slice.call(document.querySelectorAll('canvas'));
-    cvs.forEach(function(cv){
-      var ch=(window.Chart&&Chart.getChart)?Chart.getChart(cv):(cv&&cv._chart);
-      if(ch)patch(ch)
-    })
-  }
-  var mo=new MutationObserver(function(){setTimeout(run,0)});
-  mo.observe(document.documentElement,{subtree:true,childList:true});
-  setTimeout(run,200);
-})();
+var state={labelsMode:'percent',roleCurve:'none',ratingYear:2025}
+var currencySymbols={AED:'AED',USD:'$',EUR:'€',GBP:'£',OMR:'ر.ع.'}
+var fileEl=document.getElementById('file')
+var yearEl=document.getElementById('ratingYear')
+var roleEl=document.getElementById('roleCurve')
+var searchEl=document.getElementById('departments-search')
+var labelsEl=document.getElementById('labels-mode')
+var totalEl=document.getElementById('totalCount')
+var chartEl=document.getElementById('chart')
+var targetTBody=document.getElementById('target-rows')
+var actualTBody=document.getElementById('actual-rows')
+var allRows=[]
+var chart
+Chart.register(ChartDataLabels)
+var bucketLabels=['Poor','Below Expectations','Meets Expectations','Exceeds','Exceptional']
+var targetPercents=[5,15,60,15,5]
+
+function norm(x){return String(x||'').trim().toUpperCase()}
+function toPercents(a,t){return a.map(function(c){return t?c*100/t:0})}
+function maxOf(a){return a.reduce(function(m,v){return v>m?v:m},0)}
+function smooth(a){var k=[0.06136,0.24477,0.38774,0.24477,0.06136],o=[];for(var i=0;i<a.length;i++){var s=0;for(var j=-2;j<=2;j++){var idx=Math.max(0,Math.min(a.length-1,i+j));s+=a[idx]*k[j+2]}o.push(s)}return o}
+function scaleTo(t,s,f){var T=maxOf(t),S=maxOf(s)||1,M=(T*f)/S;return s.map(function(v){return v*M})}
+function ensureRoleOptionsFromData(rows){var set=new Set();rows.forEach(function(r){var v=norm(r['Position Level']);if(/^N[1-5]$/.test(v))set.add(v)});['N1','N2','N3','N4','N5'].forEach(function(v){set.add(v)});var have=new Set([].map.call(roleEl.options,function(o){return (o.value||o.textContent).trim().toUpperCase()}));Array.from(set).forEach(function(v){if(!have.has(v)){var opt=document.createElement('option');opt.value=v;opt.textContent=v;roleEl.appendChild(opt)}})}
+function applyExistingFilters(rows){return rows}
+function filterWithSearch(rows){var q=norm(searchEl.value||'');if(/^N[1-5]$/.test(q))return rows.filter(function(r){return norm(r['Position Level'])===q});if(!q)return rows;return rows.filter(function(r){return String(r.Department||'').toUpperCase().includes(q)})}
+function filterByRole(rows){if(!state.roleCurve||state.roleCurve==='none')return rows;return rows.filter(function(r){return norm(r['Position Level'])===norm(state.roleCurve)})}
+function getFilteredRowsAll(){var r=applyExistingFilters(allRows);r=filterWithSearch(r);r=filterByRole(r);return r}
+function computeCountsByRating(rows,year){var key=year===2024?'2024 Rating':'2025 Rating';var b={1:0,2:0,3:0,4:0,5:0};for(var i=0;i<rows.length;i++){var rv=Number(rows[i][key]);if(rv>=1&&rv<=5)b[rv]+=1}return[b[1],b[2],b[3],b[4],b[5]]}
+function renderTargets(){var frag=document.createDocumentFragment();for(var i=0;i<bucketLabels.length;i++){var tr=document.createElement('tr');var td1=document.createElement('td');var td2=document.createElement('td');td1.textContent=bucketLabels[i];td2.textContent=targetPercents[i].toFixed(1)+'%';tr.appendChild(td1);tr.appendChild(td2);frag.appendChild(tr)}targetTBody.innerHTML='';targetTBody.appendChild(frag)}
+function renderActuals(counts,total){var frag=document.createDocumentFragment();for(var i=0;i<bucketLabels.length;i++){var tr=document.createElement('tr');var td1=document.createElement('td');var td2=document.createElement('td');var td3=document.createElement('td');td1.textContent=bucketLabels[i];td2.textContent=counts[i].toLocaleString();td3.textContent=(total?counts[i]*100/total:0).toFixed(1)+'%';tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);frag.appendChild(tr)}actualTBody.innerHTML='';actualTBody.appendChild(frag)}
+function buildChart(){var ctx=chartEl.getContext('2d');chart=new Chart(ctx,{data:{labels:bucketLabels,datasets:[{type:'bar',label:'Target %',data:targetPercents,backgroundColor:'rgba(60,60,60,0.25)',borderColor:'#666',borderWidth:1,datalabels:{display:false}},{type:'bar',label:'Actual Bar',data:[0,0,0,0,0],backgroundColor:'rgba(231,76,60,0.25)',borderColor:'#e74c3c',borderWidth:1,datalabels:{display:true,color:'#e7e7e7',align:'top',anchor:'end'}},{type:'line',label:'Actual Trend',data:[0,0,0,0,0],borderColor:'#ff5c5c',backgroundColor:'rgba(255,92,92,0.15)',pointBackgroundColor:'#ff5c5c',tension:0.2,cubicInterpolationMode:'monotone',datalabels:{display:false}}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#e7e7e7'}},datalabels:{clamp:true,clip:true,align:'top',anchor:'end',offset:4}},scales:{x:{ticks:{color:'#cbd5e1'}},y:{beginAtZero:true,grace:'10%',ticks:{color:'#cbd5e1'}}}})}
+function updateChart(){var rows=getFilteredRowsAll();var total=rows.length;totalEl.textContent=total.toLocaleString();var counts=computeCountsByRating(rows,Number(state.ratingYear));var series=state.labelsMode==='percent'?toPercents(counts,total):counts;var targetDs=chart.data.datasets[0];var bar=chart.data.datasets[1];var line=chart.data.datasets[2];if(state.labelsMode==='percent'){targetDs.hidden=false;targetDs.data=targetPercents}else{targetDs.hidden=true}bar.data=series;line.cubicInterpolationMode='monotone';line.tension=0.2;line.yAxisID='y';var trend=scaleTo(series,smooth(series),0.90);var yMax=state.labelsMode==='percent'?100:Math.ceil(maxOf(series)*1.15)||1;chart.options.scales.y.max=yMax;chart.options.scales.y.ticks.callback=state.labelsMode==='percent'?function(v){return v+'%'}:function(v){return Number(v).toLocaleString()};chart.options.plugins.datalabels.formatter=state.labelsMode==='percent'?function(v){return v.toFixed(1)+'%'}:function(v){return Number(v).toLocaleString()};line.data=trend.map(function(v){return Math.min(v,yMax*0.98)});chart.update();renderActuals(counts,total)}
+function handleFile(file){if(!file)return;var name=file.name.toLowerCase();if(name.endsWith('.csv')){var fr=new FileReader();fr.onload=function(){var wb=XLSX.read(fr.result,{type:'binary'});var ws=wb.Sheets[wb.SheetNames[0]];allRows=XLSX.utils.sheet_to_json(ws,{defval:null});ensureRoleOptionsFromData(allRows);updateChart()};fr.readAsBinaryString(file)}else{file.arrayBuffer().then(function(buf){var wb=XLSX.read(buf,{type:'array'});var ws=wb.Sheets['Full Data']||wb.Sheets[wb.SheetNames[0]];allRows=XLSX.utils.sheet_to_json(ws,{defval:null});ensureRoleOptionsFromData(allRows);updateChart()})}}
+function init(){renderTargets();buildChart();updateChart()}
+fileEl.addEventListener('change',function(){handleFile(fileEl.files[0])})
+yearEl.addEventListener('change',function(){state.ratingYear=Number(yearEl.value);updateChart()})
+roleEl.addEventListener('change',function(){state.roleCurve=roleEl.value;updateChart()})
+searchEl.addEventListener('input',function(){updateChart()})
+labelsEl.addEventListener('change',function(){state.labelsMode=this.value==='#'?'count':'percent';updateChart()})
+init()
 </script>
+</body>
+</html>
