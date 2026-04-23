@@ -34,8 +34,21 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         body.theme-light {
-            background-color: #f8fafc;
-            color: #0f172a;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        body.theme-light .text-white,
+        body.theme-light .text-slate-50,
+        body.theme-light .text-slate-100,
+        body.theme-light .text-slate-200,
+        body.theme-light .text-slate-300,
+        body.theme-light .text-slate-400,
+        body.theme-light .text-slate-500,
+        body.theme-light .text-slate-600,
+        body.theme-light .text-slate-700,
+        body.theme-light .text-slate-800,
+        body.theme-light .text-slate-900 {
+            color: #000000 !important;
         }
         body.theme-light .card {
             background: #ffffff;
@@ -45,10 +58,36 @@
         body.theme-light .input-dark {
             background-color: #ffffff;
             border-color: #e2e8f0;
-            color: #0f172a;
+            color: #000000;
         }
         body.theme-light .input-dark:focus {
             border-color: #3b82f6;
+        }
+        body.theme-light .bg-slate-900,
+        body.theme-light .bg-slate-900\/70 {
+            background-color: #f1f5f9 !important;
+        }
+        body.theme-light .bg-slate-800 {
+            background-color: #e2e8f0 !important;
+        }
+        body.theme-light .border-slate-600,
+        body.theme-light .border-slate-700,
+        body.theme-light .border-slate-800 {
+            border-color: #cbd5e1 !important;
+        }
+        /* Header light theme */
+        body.theme-light .sticky.top-0 {
+            background-color: #ffffff !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        body.theme-light .sticky.top-0 .bg-slate-800,
+        body.theme-light .sticky.top-0 .bg-slate-700 {
+            background-color: #f1f5f9 !important;
+            border-color: #e2e8f0 !important;
+        }
+        body.theme-light .sticky.top-0 .text-white,
+        body.theme-light .sticky.top-0 .text-slate-200 {
+            color: #000000 !important;
         }
     </style>
 </head>
@@ -363,7 +402,7 @@
                         <div class="flex items-center gap-2">
                             <label class="text-xs text-slate-400">Currency</label>
                             <select id="curr-code" class="p-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200">
-                                <option value="AED">AED</option>
+                                <option value="OMR">OMR</option>
                                 <option value="USD">USD</option>
                                 <option value="EUR">EUR</option>
                                 <option value="GBP">GBP</option>
@@ -655,7 +694,7 @@
         const presetTopBtn = document.getElementById('preset-top');
         const presetMidBtn = document.getElementById('preset-mid');
         const currCodeEl = document.getElementById('curr-code');
-        let currCode = 'AED';
+        let currCode = 'OMR';
         
         function log(message, isError = false) {
             try {
@@ -910,10 +949,10 @@
             }
             if (currCodeEl) {
                 currCodeEl.addEventListener('change', () => {
-                    currCode = currCodeEl.value || 'AED';
+                    currCode = currCodeEl.value || 'OMR';
                     renderCompBaseline();
                 });
-                currCode = currCodeEl.value || 'AED';
+                currCode = currCodeEl.value || 'OMR';
             }
 
             // Initial Render

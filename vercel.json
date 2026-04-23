@@ -2,8 +2,7 @@
   "rewrites": [
     { "source": "/login", "destination": "/login.html" },
     { "source": "/salaries", "destination": "/salaries.html" },
-    { "source": "/(.*\\.html)", "destination": "/$1" },
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }

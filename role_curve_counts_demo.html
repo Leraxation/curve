@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Role Curve Counts Demo</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; background:#0b0b0b; color:#eee; }
+    .controls { display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+    select, button { padding:6px 10px; }
+    #status { font-size:14px; margin-top:8px; color:#aaa; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .panel { background:#121212; border:1px solid #222; border-radius:8px; padding:12px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #333; padding: 6px 8px; font-size: 13px; }
+    th { background: #1a1a1a; }
+    .legend { margin-top: 8px; font-size: 13px; color:#bbb; }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label for="roleCurve">Role Curve</label>
+    <select id="roleCurve">
+      <option value="none">None</option>
+      <option value="N1">N1</option>
+      <option value="N2">N2</option>
+      <option value="N3">N3</option>
+      <option value="N4">N4</option>
+      <option value="N5">N5</option>
+      <option value="N6">N6</option>
+    </select>
+    <label for="ratingYear">Rating Year</label>
+    <select id="ratingYear">
+      <option value="2024">2024</option>
+      <option value="2025" selected>2025</option>
+    </select>
+    <button id="reset">Reset</button>
+  </div>
+  <div id="status"></div>
+  <div class="grid">
+    <div class="panel">
+      <canvas id="chart" height="160"></canvas>
+      <div class="legend">Line shows counts per rating bucket; selecting N1–N6 filters by Position Level.</div>
+    </div>
+    <div class="panel">
+      <table id="table">
+        <thead>
+          <tr><th>Bucket</th><th>Count</th><th>Actual %</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const roleCurveEl = document.getElementById('roleCurve');
+    const ratingYearEl = document.getElementById('ratingYear');
+    const statusEl = document.getElementById('status');
+    const tableEl = document.querySelector('#table tbody');
+    const chartEl = document.getElementById('chart');
+    let chart;
+
+    const rows = [
+      { 'Position Level': 'N1', '2024 Rating': 3, '2025 Rating': 4 },
+      { 'Position Level': 'N1', '2025 Rating': 3, '2024 Rating': 3 },
+      { 'Position Level': 'N2', '2025 Rating': 5, '2024 Rating': 4 },
+      { 'Position Level': 'N2', '2025 Rating': 2, '2024 Rating': 2 },
+      { 'Position Level': 'N3', '2025 Rating': 3, '2024 Rating': 3 },
+      { 'Position Level': 'N5', '2025 Rating': 1, '2024 Rating': 2 },
+      { 'Position Level': 'N6', '2025 Rating': 4, '2024 Rating': 4 },
+      { 'Position Level': 'N4', '2025 Rating': 3, '2024 Rating': 3 },
+      { 'Position Level': 'N4', '2025 Rating': 3, '2024 Rating': 3 },
+      { 'Position Level': 'N1', '2025 Rating': 5, '2024 Rating': 4 }
+    ];
+
+    function filterByRoleCurve(all, role) {
+      if (!role || role === 'none') return all;
+      return all.filter(r => String(r['Position Level']) === role);
+    }
+
+    function computeCountsByRating(all, ratingKey) {
+      const buckets = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+      for (let i = 0; i < all.length; i++) {
+        const rv = Number(all[i][ratingKey]);
+        if (rv >= 1 && rv <= 5) buckets[rv] += 1;
+      }
+      return [buckets[1], buckets[2], buckets[3], buckets[4], buckets[5]];
+    }
+
+    function renderTable(labels, counts, total) {
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < labels.length; i++) {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        const td3 = document.createElement('td');
+        td1.textContent = labels[i];
+        td2.textContent = counts[i];
+        td3.textContent = total ? ((counts[i] / total) * 100).toFixed(2) + '%' : '0%';
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+        frag.appendChild(tr);
+      }
+      tableEl.innerHTML = '';
+      tableEl.appendChild(frag);
+    }
+
+    function update() {
+      const role = roleCurveEl.value;
+      const year = ratingYearEl.value;
+      const filtered = filterByRoleCurve(rows, role);
+      const labels = ['Poor','Below Expectations','Meets Expectations','Exceeds','Exceptional'];
+      const counts = computeCountsByRating(filtered, year + ' Rating');
+      const total = filtered.length;
+      statusEl.textContent = 'Filtered rows: ' + total + ' (Role: ' + role + ', Year: ' + year + ')';
+      renderTable(labels, counts, total);
+      const cfg = {
+        type: 'line',
+        data: { labels, datasets: [{ label: 'Count', data: counts, borderColor: '#e74c3c', backgroundColor: 'rgba(231,76,60,0.2)', pointRadius: 3, tension: 0.2 }] },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#ddd' } } }, scales: { x: { ticks: { color: '#bbb' } }, y: { ticks: { color: '#bbb' } } } }
+      };
+      if (chart) { chart.data.labels = labels; chart.data.datasets[0].data = counts; chart.update(); }
+      else { chart = new Chart(chartEl, cfg); }
+    }
+
+    roleCurveEl.addEventListener('change', update);
+    ratingYearEl.addEventListener('change', update);
+    document.getElementById('reset').addEventListener('click', () => { roleCurveEl.value = 'none'; update(); });
+    update();
+  </script>
+</body>
+</html>

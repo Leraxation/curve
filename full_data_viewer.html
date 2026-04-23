@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Full Data Sheet Viewer</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+    #status { font-size: 14px; color: #444; margin: 8px 0 16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; font-size: 13px; }
+    th { background: #f2f2f2; text-align: left; }
+    .summary { margin-top: 16px; font-size: 14px; }
+    .summary-item { margin: 4px 0; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Display data from "Full Data" sheet</h1>
+  <div class="controls">
+    <input id="file" type="file" accept=".xlsx,.xls,.xlsm,.csv" />
+    <button id="sample">Test with sample data</button>
+    <label for="roleCurve">Role Curve</label>
+    <select id="roleCurve">
+      <option value="">All</option>
+      <option value="N1">N1</option>
+      <option value="N2">N2</option>
+      <option value="N3">N3</option>
+      <option value="N4">N4</option>
+      <option value="N5">N5</option>
+      <option value="N6">N6</option>
+    </select>
+  </div>
+  <div id="status"></div>
+  <div id="output"></div>
+  <div id="summary" class="summary"></div>
+  <canvas id="chart" height="120"></canvas>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const summaryEl = document.getElementById('summary');
+    const fileEl = document.getElementById('file');
+    const sampleBtn = document.getElementById('sample');
+    const roleCurveEl = document.getElementById('roleCurve');
+    const chartEl = document.getElementById('chart');
+    let chart;
+    let allRows = [];
+    if (window.Chart && window.ChartDataLabels) Chart.register(window.ChartDataLabels);
+
+    function setStatus(text) {
+      statusEl.textContent = text || '';
+    }
+
+    function clearOutput() {
+      outputEl.innerHTML = '';
+      summaryEl.innerHTML = '';
+    }
+
+    function renderTable(rows) {
+      if (!rows || rows.length === 0) {
+        outputEl.innerHTML = '<div>No rows found.</div>';
+        return;
+      }
+      const headers = Object.keys(rows[0] || {});
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const trh = document.createElement('tr');
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+      table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+          const td = document.createElement('td');
+          td.textContent = r[h] == null ? '' : String(r[h]);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      outputEl.innerHTML = '';
+      outputEl.appendChild(table);
+    }
+
+    function isNumericValue(v) {
+      if (v == null) return false;
+      if (typeof v === 'number' && isFinite(v)) return true;
+      if (typeof v !== 'string') return false;
+      const s = v.replace(/[$,\s]/g, '');
+      if (s === '') return false;
+      const n = Number(s);
+      return !Number.isNaN(n) && isFinite(n);
+    }
+
+    function toNumber(v) {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') {
+        const s = v.replace(/[$,\s]/g, '');
+        const n = Number(s);
+        return Number.isNaN(n) ? null : n;
+      }
+      return null;
+    }
+
+    function renderNumericSummary(rows) {
+      if (!rows || rows.length === 0) {
+        summaryEl.innerHTML = '';
+        return;
+      }
+      const headers = Object.keys(rows[0] || {});
+      const numericCols = headers.filter(h => rows.some(r => isNumericValue(r[h])));
+      if (numericCols.length === 0) {
+        summaryEl.innerHTML = '<div class="summary-item">No numeric columns detected.</div>';
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      numericCols.forEach(h => {
+        let count = 0, sum = 0, min = null, max = null;
+        rows.forEach(r => {
+          const n = toNumber(r[h]);
+          if (n == null) return;
+          count++;
+          sum += n;
+          min = min == null ? n : Math.min(min, n);
+          max = max == null ? n : Math.max(max, n);
+        });
+        const avg = count ? (sum / count) : null;
+        const div = document.createElement('div');
+        div.className = 'summary-item';
+        div.textContent = `${h}: count=${count}` + (avg != null ? `, avg=${avg}` : '') + (sum ? `, sum=${sum}` : '') + (min != null ? `, min=${min}` : '') + (max != null ? `, max=${max}` : '');
+        frag.appendChild(div);
+      });
+      summaryEl.innerHTML = '';
+      summaryEl.appendChild(frag);
+    }
+
+    function headerMatch(keys, target) {
+      const t = String(target).toLowerCase();
+      for (const k of keys) {
+        if (String(k).toLowerCase() === t) return k;
+      }
+      return null;
+    }
+
+    function updateChart(rows, role) {
+      const keys = Object.keys(rows[0] || {});
+      const yearKey = headerMatch(keys, 'Year');
+      const roleKey = headerMatch(keys, 'Role Curve');
+      if (!yearKey) {
+        setStatus('Chart requires a "Year" column.');
+        if (chart) { chart.destroy(); chart = null; }
+        return;
+      }
+      let filtered = rows;
+      if (role && roleKey) filtered = rows.filter(r => String(r[roleKey]) === role);
+      const byYear = {};
+      filtered.forEach(r => {
+        const y = r[yearKey];
+        if (y == null) return;
+        const key = String(y);
+        byYear[key] = (byYear[key] || 0) + 1;
+      });
+      const labels = Object.keys(byYear).sort((a,b) => Number(a) - Number(b));
+      const data = labels.map(l => byYear[l]);
+      const config = {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Count of people',
+            data,
+            borderColor: '#2a7ade',
+            backgroundColor: 'rgba(42,122,222,0.2)',
+            pointRadius: 3,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              ticks: {
+                color: (ctx) => {
+                  const v = ctx.tick.value;
+                  return (v === 2024 || String(v) === '2024') ? 'red' : '#666';
+                }
+              }
+            },
+            y: { ticks: { color: '#666' } }
+          },
+          plugins: {
+            legend: { labels: { color: '#333' } },
+            datalabels: {
+              color: '#000',
+              align: 'top',
+              formatter: (value) => value
+            }
+          }
+        }
+      };
+      if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].label = config.data.datasets[0].label;
+        chart.data.datasets[0].data = data;
+        chart.update();
+      } else {
+        chart = new Chart(chartEl, config);
+      }
+      renderNumericSummary(filtered);
+    }
+
+    function parseWorkbook(wb) {
+      clearOutput();
+      const ws = wb.Sheets['Full Data'];
+      if (!ws) {
+        setStatus('Sheet "Full Data" not found. Move it to first tab or export just that sheet.');
+        return;
+      }
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: null });
+      allRows = rows;
+      setStatus(`Loaded ${rows.length} rows from "Full Data".`);
+      renderTable(rows);
+      renderNumericSummary(rows);
+      updateChart(rows, roleCurveEl.value);
+    }
+
+    async function handleFile(file) {
+      if (!file) return;
+      setStatus('Reading file…');
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      parseWorkbook(wb);
+    }
+
+    fileEl.addEventListener('change', () => handleFile(fileEl.files[0]));
+    roleCurveEl.addEventListener('change', () => {
+      if (!allRows.length) return;
+      updateChart(allRows, roleCurveEl.value);
+    });
+
+    sampleBtn.addEventListener('click', () => {
+      const wb = XLSX.utils.book_new();
+      const aoa = [
+        ['Year', 'Role Curve', 'Value'],
+        [2023, 'N1', 10],
+        [2024, 'N1', 12],
+        [2024, 'N2', 7],
+        [2025, 'N3', 8],
+        [2024, 'N5', 4],
+        [2026, 'N6', 9]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      XLSX.utils.book_append_sheet(wb, ws, 'Full Data');
+      parseWorkbook(wb);
+    });
+  </script>
+</body>
+</html>

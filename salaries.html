@@ -8,42 +8,122 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="window.xlsxLoadError = true"></script>
   <style>
-    body { background: radial-gradient(125% 125% at 50% 100%, #000000 40%, #010133 100%); color: #e2e8f0; font-family: Inter, system-ui, -apple-system, sans-serif; transition: background 0.3s, color 0.3s; }
-    .card { background: radial-gradient(125% 125% at 50% 100%, #000000 40%, #350136 100%); border: 1px solid #334155; border-radius: 0.75rem; transition: background 0.3s, border-color 0.3s; }
-    .input-dark { background:#0f172a; border:1px solid #334155; color:#fff; transition: background 0.3s, border-color 0.3s; }
-    .input-dark:focus { outline: none; border-color:#3b82f6 }
+    :root {
+      --primary: #5C001E;
+      --accent: #B8860B;
+      --bg-dark: #121212;
+      --bg-light: #FDFBF7;
+      --text-dark: #EAEAEA;
+      --text-light: #333333;
+      --card-dark: rgba(24, 24, 24, 0.92);
+      --card-light: #ffffff;
+      --border-dark: rgba(184, 134, 11, 0.32);
+      --border-light: rgba(184, 134, 11, 0.28);
+      --input-dark: rgba(18, 18, 18, 0.92);
+      --input-light: #ffffff;
+    }
+    body { 
+      background:
+        radial-gradient(circle at 50% 0%, rgba(92, 0, 30, 0.35), transparent 38%),
+        radial-gradient(circle at 100% 30%, rgba(184, 134, 11, 0.08), transparent 40%),
+        linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 55%, #080808 100%);
+      color: var(--text-dark); 
+      font-family: Inter, system-ui, -apple-system, sans-serif; 
+      position: relative; 
+      overflow-x: hidden; 
+    }
+
+     /* Digital Particle Wave Background */
+     #particle-canvas {
+       position: fixed;
+       top: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+       z-index: -1;
+       pointer-events: none;
+       opacity: 0.7;
+     }
+
+    /* Purple gradient overlay with transparency */
+     .purple-overlay {
+       position: fixed;
+       top: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(92, 0, 30, 0.22) 0%, transparent 50%),
+        radial-gradient(ellipse at 0% 50%, rgba(184, 134, 11, 0.08) 0%, transparent 40%),
+        radial-gradient(ellipse at 100% 50%, rgba(92, 0, 30, 0.14) 0%, transparent 40%);
+       z-index: -1;
+       pointer-events: none;
+     }
+
+    .card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 0.75rem; transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease; backdrop-filter: blur(10px); box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(184, 134, 11, 0.10); transform: translateZ(0); will-change: transform, box-shadow; }
+    .card:hover { border-color: rgba(184, 134, 11, 0.70); box-shadow: 0 10px 26px rgba(0,0,0,0.55), 0 0 0 1px rgba(184, 134, 11, 0.22), 0 0 22px rgba(184, 134, 11, 0.20), 0 0 44px rgba(92, 0, 30, 0.18); transform: translateY(-2px); }
+    .input-dark { background: var(--input-dark); border: 1px solid rgba(184, 134, 11, 0.28); color: var(--text-dark); transition: background 0.3s, border-color 0.3s; }
+    .input-dark:focus { outline: none; border-color: var(--accent) }
+    .brand-mark { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+    .hover\:border-blue-500:hover,
+    .focus\:border-blue-500:focus { border-color: var(--accent) !important; }
+    .bg-blue-600 { background-color: var(--primary) !important; }
+    .hover\:bg-blue-500:hover { background-color: #7a0028 !important; }
     
-    /* Light Theme Overrides */
-    body.theme-light { background: #f8fafc !important; color: #0f172a !important; }
-    body.theme-light .card { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important; }
-    body.theme-light .input-dark { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
-    body.theme-light .text-white { color: #0f172a !important; }
-    body.theme-light .text-slate-400 { color: #475569 !important; }
-    body.theme-light .text-slate-300 { color: #334155 !important; }
-    body.theme-light .text-slate-200 { color: #1e293b !important; }
-    body.theme-light .bg-slate-900, body.theme-light .bg-slate-900\/70 { background-color: #f1f5f9 !important; }
-    body.theme-light .bg-slate-800 { background-color: #e2e8f0 !important; }
-    body.theme-light .border-slate-800, body.theme-light .border-slate-700, body.theme-light .border-slate-600 { border-color: #cbd5e1 !important; }
-    body.theme-light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) { border-color: #cbd5e1 !important; }
+     /* Light Theme Overrides */
+    body.theme-light { background: var(--bg-light) !important; color: var(--text-light) !important; }
+    body.theme-light .card { background: var(--card-light) !important; border-color: var(--border-light) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.05), 0 0 0 1px rgba(184,134,11,0.08) !important; }
+    body.theme-light .card:hover { border-color: rgba(184,134,11,0.55) !important; box-shadow: 0 10px 26px rgba(2,6,23,0.12), 0 0 0 1px rgba(184,134,11,0.18), 0 0 18px rgba(184,134,11,0.16) !important; transform: translateY(-2px); }
+    @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+    body.theme-light .input-dark { background: var(--input-light) !important; border-color: var(--border-light) !important; color: var(--text-light) !important; }
+    body.theme-light .text-white { color: var(--primary) !important; }
+     body.theme-light .text-slate-500,
+     body.theme-light .text-slate-400,
+     body.theme-light .text-slate-300,
+     body.theme-light .text-slate-200,
+     body.theme-light .text-slate-100,
+    body.theme-light .text-slate-50 { color: var(--text-light) !important; }
+   body.theme-light .bg-slate-900, body.theme-light .bg-slate-900\/70 { background-color: rgba(253, 251, 247, 0.92) !important; }
+   body.theme-light .bg-slate-800 { background-color: rgba(253, 251, 247, 0.80) !important; }
+   body.theme-light .border-slate-800, body.theme-light .border-slate-700, body.theme-light .border-slate-600 { border-color: var(--border-light) !important; }
+   body.theme-light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(184, 134, 11, 0.18) !important; }
     
     /* Darker colors for better contrast in light mode */
     body.theme-light .text-red-400, body.theme-light .text-red-300 { color: #dc2626 !important; font-weight: bold; }
     body.theme-light .text-emerald-400, body.theme-light .text-emerald-300 { color: #059669 !important; font-weight: bold; }
     body.theme-light .text-amber-400, body.theme-light .text-amber-300 { color: #d97706 !important; font-weight: bold; }
-    body.theme-light .text-blue-400, body.theme-light .text-blue-300 { color: #2563eb !important; }
+   body.theme-light .text-blue-400, body.theme-light .text-blue-300 { color: var(--accent) !important; }
     body.theme-light .text-teal-400, body.theme-light .text-teal-300 { color: #0d9488 !important; }
-    body.theme-light .text-purple-400, body.theme-light .text-purple-300 { color: #9333ea !important; }
+   body.theme-light .text-purple-400, body.theme-light .text-purple-300 { color: var(--accent) !important; }
     body.theme-light .text-orange-400, body.theme-light .text-orange-300 { color: #ea580c !important; }
-  </style>
-  <script>
-    function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-  </script>
-</head>
-<body class="min-h-screen">
-  <div class="sticky top-0 z-40 backdrop-blur bg-slate-900/70 border-b border-slate-800">
+
+    .heat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
+    @media (min-width: 768px) { .heat-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .heat-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+    .heat-tile { border: 1px solid rgba(184, 134, 11, 0.22); border-radius: 0.75rem; padding: 0.65rem 0.75rem; background: rgba(18, 18, 18, 0.60); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25); transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; cursor: pointer; user-select: none; }
+    .heat-tile:hover { transform: translateY(-1px); border-color: rgba(184, 134, 11, 0.55); box-shadow: 0 10px 22px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.25); }
+    .heat-tile[data-active="true"] { border-color: rgba(184, 134, 11, 0.85); box-shadow: 0 12px 26px rgba(0,0,0,0.45), 0 0 18px rgba(184, 134, 11, 0.22), inset 0 0 0 1px rgba(0,0,0,0.25); }
+    .heat-title { font-size: 11px; color: rgba(226, 232, 240, 0.9); font-weight: 700; line-height: 1.15; }
+    .heat-sub { margin-top: 0.35rem; font-size: 10px; color: rgba(148, 163, 184, 0.95); display: flex; justify-content: space-between; gap: 0.5rem; }
+    .heat-val { font-size: 11px; font-weight: 800; color: rgba(226, 232, 240, 0.95); }
+    body.theme-light .heat-tile { background: rgba(253, 251, 247, 0.92); border-color: rgba(184, 134, 11, 0.22); box-shadow: inset 0 0 0 1px rgba(2, 6, 23, 0.06); }
+    body.theme-light .heat-tile:hover { box-shadow: 0 10px 22px rgba(2,6,23,0.10), inset 0 0 0 1px rgba(2, 6, 23, 0.06); }
+    body.theme-light .heat-title { color: rgba(51, 51, 51, 0.95); }
+    body.theme-light .heat-sub { color: rgba(51, 51, 51, 0.75); }
+    body.theme-light .heat-val { color: rgba(51, 51, 51, 0.95); }
+    @media (prefers-reduced-motion: reduce) { .heat-tile { transition: none; } .heat-tile:hover { transform: none; } }
+ </style>
+ </head>
+ <body class="min-h-screen">
+   <!-- Particle Wave Canvas -->
+   <canvas id="particle-canvas"></canvas>
+   <!-- Purple Gradient Overlay -->
+   <div class="purple-overlay"></div>
+
+   <div class="sticky top-0 z-40 backdrop-blur bg-slate-900/70 border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <div class="h-6 w-6 rounded bg-gradient-to-tr from-emerald-500 to-purple-500"></div>
+        <div class="h-6 w-6 rounded brand-mark"></div>
         <span class="text-white font-bold tracking-wide">Salary Dashboard</span>
       </div>
       <div class="flex items-center gap-2">
@@ -163,6 +243,35 @@
         </div>
 
         <div class="card p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <h3 class="text-lg font-bold text-white">Total Salary Cost Heatmap</h3>
+            <div class="flex items-center gap-2">
+              <button id="heatmap-clear" class="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Clear</button>
+              <button id="heatmap-export" class="text-xs px-2 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Export CSV</button>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-12 gap-4">
+            <div class="md:col-span-8">
+              <div id="dept-heatmap" class="heat-grid"></div>
+              <div class="mt-3 flex items-center gap-3 text-[11px] text-slate-400">
+                <div class="h-2.5 w-24 rounded" style="background: linear-gradient(90deg, rgba(92,0,30,0.35), rgba(184,134,11,0.55));"></div>
+                <div>Lower → Higher total payroll</div>
+              </div>
+            </div>
+            <div class="md:col-span-4 space-y-3">
+              <div class="p-3 rounded bg-slate-900 border border-slate-700">
+                <div class="text-[11px] uppercase text-slate-400 mb-1">Department Focus</div>
+                <div id="heatmap-focus" class="text-sm text-slate-200">Click a department tile to see details.</div>
+              </div>
+              <div class="p-3 rounded bg-slate-900 border border-slate-700">
+                <div class="text-[11px] uppercase text-slate-400 mb-1">Insights</div>
+                <div id="salary-insights" class="text-sm text-slate-200">Upload data to generate insights.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-6">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-lg font-bold text-white">Disparity Indicators</h3>
           </div>
@@ -228,6 +337,7 @@
     let nameKey = null;
     let dojKey = null;
     let histChart = null, ratingChart = null, deptChart = null;
+    let heatmapSelectedDept = '';
 
     const dropZone = document.getElementById('drop-zone');
     const fileUpload = document.getElementById('file-upload');
@@ -251,6 +361,22 @@
     }
 
     function normKey(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase()}
+    function escapeHtml(s){
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function normalizeDeptValue(v){
+      return String(v ?? '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/&/g, 'and')
+        .replace(/[^\w\s]/g, '')
+        .toLowerCase();
+    }
+    function getDeptKey(){
+      const sample = rows[0]||{};
+      const keys = Object.keys(sample);
+      return keys.find(k=>normKey(k)==='department') || keys.find(k=>/department|dept/i.test(k)) || null;
+    }
     function getStoredMapping(filename){try{const raw=localStorage.getItem('colmap::'+filename);return raw?JSON.parse(raw):null}catch{return null}}
     function detectYearRatingKey(keys, year){
       const exact = keys.find(k => normKey(k) === `${year} rating`);
@@ -428,21 +554,9 @@
       return 0;
     }
     function ratingVal(v){
-      let rating = 0;
-      if (typeof v === 'number') rating = Math.round(v);
-      else if (typeof v === 'string') {
-        const m = v.match(/\d+/);
-        if (m) rating = parseInt(m[0]);
-        if (!rating) {
-          const lower = v.toLowerCase();
-          if (lower.includes('poor')) rating = 1;
-          else if (lower.includes('satisfactory') || lower.includes('below expectations')) rating = 2;
-          else if (lower.includes('good') || lower.includes('meets expectations')) rating = 3;
-          else if (lower.includes('exceeds')) rating = 4;
-          else if (lower.includes('outstanding') || lower.includes('exceptional')) rating = 5;
-        }
-      }
-      return rating;
+      if(typeof v==='number') return Math.round(v);
+      if(typeof v==='string'){ const m=v.match(/\d+/); if(m) return parseInt(m[0]); }
+      return 0;
     }
     function parseDateLike(v){
       if(!v) return null;
@@ -532,6 +646,8 @@
       document.getElementById('ind-deptgap').textContent = fmt(Math.round(deptGap));
       drawDeptDisparity(mean);
       renderSolutions({ cov, ratio, g, topShare, deptGap, mean });
+      renderDeptPayrollHeatmap();
+      renderSalaryIntelligence({ mean, cov, ratio, g, topShare, deptGap });
     }
     function drawDeptDisparity(companyMean){
       const body = document.getElementById('dept-disparity-body');
@@ -645,21 +761,276 @@
     }
     function drawAvgByDept(){
       // Try common department keys
-      const sample = rows[0]||{};
-      const keys = Object.keys(sample);
-      const deptKey = keys.find(k=>normKey(k)==='department') || keys.find(k=>/department|dept/i.test(k));
+      const deptKey = getDeptKey();
       if(!deptKey || !salaryKey){ renderChart('avgByDept', [], [], 'bar', ''); return; }
       const arr = avgBy(deptKey).slice(0,10);
       renderChart('avgByDept', arr.map(a=>a.k), arr.map(a=>Math.round(a.avg)), 'bar', 'Avg Salary');
     }
+
+    function computeDeptPayrollSummary(){
+      const deptKey = getDeptKey();
+      if (!deptKey || !salaryKey || !rows.length) return { deptKey: null, list: [], totals: { payroll: 0, headcount: 0 } };
+      const headcountByDept = new Map();
+      const payrollByDept = new Map();
+      const salariesByDept = new Map();
+      const staffSeen = staffKey ? new Set() : null;
+
+      rows.forEach(r => {
+        const dRaw = r[deptKey];
+        const deptNorm = normalizeDeptValue(dRaw);
+        if (!deptNorm) return;
+        const sal = salaryVal(r[salaryKey]);
+        if (sal <= 0) return;
+
+        payrollByDept.set(deptNorm, (payrollByDept.get(deptNorm) || 0) + sal);
+        const arr = salariesByDept.get(deptNorm) || [];
+        arr.push(sal);
+        salariesByDept.set(deptNorm, arr);
+
+        let includeHead = true;
+        if (staffSeen) {
+          const staff = String(r[staffKey] || '').trim();
+          if (!staff) includeHead = false;
+          else if (staffSeen.has(staff + '|' + deptNorm)) includeHead = false;
+          else staffSeen.add(staff + '|' + deptNorm);
+        }
+        if (includeHead) headcountByDept.set(deptNorm, (headcountByDept.get(deptNorm) || 0) + 1);
+      });
+
+      const list = [];
+      let totalPayroll = 0;
+      let totalHeadcount = 0;
+      for (const [deptNorm, payroll] of payrollByDept.entries()) {
+        const salaries = (salariesByDept.get(deptNorm) || []).slice().sort((a,b)=>a-b);
+        const n = salaries.length;
+        const headcount = headcountByDept.get(deptNorm) || n;
+        const avg = n ? payroll / n : 0;
+        const median = n ? (n%2 ? salaries[(n-1)/2] : (salaries[n/2-1]+salaries[n/2])/2) : 0;
+        const p90 = n ? percentiles(salaries, [0.9]).p90 || 0 : 0;
+        list.push({ deptNorm, deptLabel: String(rows.find(rr => normalizeDeptValue(rr[deptKey]) === deptNorm)?.[deptKey] || deptNorm).trim(), payroll, headcount, n, avg, median, p90, salaries });
+        totalPayroll += payroll;
+        totalHeadcount += headcount;
+      }
+      list.sort((a,b)=>b.payroll-a.payroll);
+      return { deptKey, list, totals: { payroll: totalPayroll, headcount: totalHeadcount } };
+    }
+
+    function renderDeptPayrollHeatmap(){
+      const grid = document.getElementById('dept-heatmap');
+      const focus = document.getElementById('heatmap-focus');
+      const exportBtn = document.getElementById('heatmap-export');
+      const clearBtn = document.getElementById('heatmap-clear');
+      if (!grid || !focus) return;
+
+      if (!rows.length || !salaryKey) {
+        grid.innerHTML = '';
+        focus.textContent = 'Upload data to view department payroll heatmap.';
+        if (exportBtn) exportBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+        return;
+      }
+
+      const summary = computeDeptPayrollSummary();
+      const list = summary.list || [];
+      if (!list.length) {
+        grid.innerHTML = '';
+        focus.textContent = 'No department/salary data found.';
+        if (exportBtn) exportBtn.disabled = true;
+        if (clearBtn) clearBtn.disabled = true;
+        return;
+      }
+
+      if (exportBtn) exportBtn.disabled = false;
+      if (clearBtn) clearBtn.disabled = false;
+
+      if (!grid.__heatmapBound) {
+        grid.addEventListener('click', (e) => {
+          const tile = e.target.closest('[data-dept]');
+          if (!tile) return;
+          const dept = tile.getAttribute('data-dept') || '';
+          heatmapSelectedDept = (heatmapSelectedDept === dept) ? '' : dept;
+          renderDeptPayrollHeatmap();
+        });
+        grid.__heatmapBound = true;
+      }
+
+      if (clearBtn && !clearBtn.__heatmapBound) {
+        clearBtn.addEventListener('click', () => { heatmapSelectedDept = ''; renderDeptPayrollHeatmap(); });
+        clearBtn.__heatmapBound = true;
+      }
+
+      if (exportBtn && !exportBtn.__heatmapBound) {
+        exportBtn.addEventListener('click', () => exportDeptPayrollCsv());
+        exportBtn.__heatmapBound = true;
+      }
+
+      const vals = list.map(x => x.payroll);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const span = Math.max(1, max - min);
+
+      grid.innerHTML = list.map(d => {
+        const t = (d.payroll - min) / span;
+        const gold = 0.14 + 0.36 * t;
+        const border = 0.22 + 0.55 * t;
+        const bg = `linear-gradient(135deg, rgba(92,0,30,${0.30 + 0.25*t}), rgba(184,134,11,${gold}))`;
+        const active = heatmapSelectedDept && heatmapSelectedDept === d.deptNorm ? 'true' : 'false';
+        const share = summary.totals.payroll ? (d.payroll / summary.totals.payroll) : 0;
+        return `<div class="heat-tile" data-dept="${escapeHtml(d.deptNorm)}" data-active="${active}" style="background:${bg}; border-color: rgba(184,134,11,${border});">
+          <div class="heat-title">${escapeHtml(d.deptLabel)}</div>
+          <div class="heat-sub">
+            <span>${d.headcount} staff</span>
+            <span class="heat-val">${fmt(Math.round(d.payroll))}</span>
+          </div>
+          <div class="heat-sub">
+            <span>Avg</span>
+            <span>${fmt(Math.round(d.avg))}</span>
+          </div>
+          <div class="heat-sub">
+            <span>Share</span>
+            <span>${(Math.round(share*1000)/10).toFixed(1)}%</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      if (!heatmapSelectedDept) {
+        const top = list[0];
+        const share = summary.totals.payroll ? (top.payroll / summary.totals.payroll) : 0;
+        focus.innerHTML = `<div class="text-white font-bold">${escapeHtml(top.deptLabel)}</div>
+          <div class="mt-1 text-xs text-slate-400">Highest total payroll: <span class="text-slate-200">${fmt(Math.round(top.payroll))}</span> (${(Math.round(share*1000)/10).toFixed(1)}% of company)</div>
+          <div class="mt-1 text-xs text-slate-400">Headcount: <span class="text-slate-200">${top.headcount}</span> · Avg salary: <span class="text-slate-200">${fmt(Math.round(top.avg))}</span></div>`;
+        return;
+      }
+
+      const sel = list.find(x => x.deptNorm === heatmapSelectedDept);
+      if (!sel) {
+        heatmapSelectedDept = '';
+        renderDeptPayrollHeatmap();
+        return;
+      }
+
+      const share = summary.totals.payroll ? (sel.payroll / summary.totals.payroll) : 0;
+      const p = percentiles(sel.salaries || [], [0.1, 0.5, 0.9]);
+      const p10 = p.p10 || 0;
+      const p90 = p.p90 || 0;
+      const ratio = p10 > 0 ? (p90 / p10) : 0;
+
+      focus.innerHTML = `<div class="text-white font-bold">${escapeHtml(sel.deptLabel)}</div>
+        <div class="mt-1 text-xs text-slate-400">Total payroll: <span class="text-slate-200">${fmt(Math.round(sel.payroll))}</span> (${(Math.round(share*1000)/10).toFixed(1)}% of company)</div>
+        <div class="mt-1 text-xs text-slate-400">Headcount: <span class="text-slate-200">${sel.headcount}</span> · Avg: <span class="text-slate-200">${fmt(Math.round(sel.avg))}</span></div>
+        <div class="mt-1 text-xs text-slate-400">Median: <span class="text-slate-200">${fmt(Math.round(sel.median))}</span> · P90: <span class="text-slate-200">${fmt(Math.round(sel.p90))}</span></div>
+        <div class="mt-1 text-xs text-slate-400">P90/P10: <span class="text-slate-200">${ratio ? ratio.toFixed(2) : '—'}</span></div>`;
+    }
+
+    function exportDeptPayrollCsv(){
+      const summary = computeDeptPayrollSummary();
+      const list = summary.list || [];
+      if (!list.length) return;
+      const lines = [];
+      lines.push(['Department','Headcount','Payroll','Payroll Share %','Avg Salary','Median','P90'].join(','));
+      list.forEach(d => {
+        const share = summary.totals.payroll ? (d.payroll / summary.totals.payroll) * 100 : 0;
+        lines.push([
+          d.deptLabel,
+          d.headcount,
+          Math.round(d.payroll),
+          share.toFixed(2) + '%',
+          Math.round(d.avg),
+          Math.round(d.median),
+          Math.round(d.p90)
+        ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+      });
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dept_payroll_heatmap.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Exported department payroll');
+    }
+
+    function renderSalaryIntelligence(ind){
+      const el = document.getElementById('salary-insights');
+      if (!el) return;
+      if (!rows.length || !salaryKey) { el.textContent = 'Upload data to generate insights.'; return; }
+
+      const summary = computeDeptPayrollSummary();
+      const list = summary.list || [];
+      const payroll = summary.totals.payroll || 0;
+      const headcount = summary.totals.headcount || 0;
+      const overallAvg = ind && ind.mean ? ind.mean : (payroll && headcount ? payroll/headcount : 0);
+
+      const bullets = [];
+      if (list.length) {
+        const top = list[0];
+        const topShare = payroll ? (top.payroll / payroll) * 100 : 0;
+        bullets.push(`Top payroll department: <span class="text-white font-bold">${escapeHtml(top.deptLabel)}</span> (${topShare.toFixed(1)}% of total).`);
+
+        const eligible = list.filter(d => d.headcount >= 5);
+        if (eligible.length) {
+          const topAvg = eligible.slice().sort((a,b)=>b.avg-a.avg)[0];
+          bullets.push(`Highest average salary (N≥5): <span class="text-white font-bold">${escapeHtml(topAvg.deptLabel)}</span> (Avg ${fmt(Math.round(topAvg.avg))}).`);
+        }
+
+        const top3 = list.slice(0,3).map(d => {
+          const s = payroll ? (d.payroll / payroll) * 100 : 0;
+          return `${escapeHtml(d.deptLabel)} (${s.toFixed(1)}%)`;
+        }).join(', ');
+        if (top3) bullets.push(`Payroll concentration (Top 3): ${top3}.`);
+
+        const lowPaidHighHead = list.slice().sort((a,b)=>b.headcount-a.headcount).slice(0,5).filter(d => d.avg && overallAvg && d.avg < overallAvg*0.85);
+        if (lowPaidHighHead.length) {
+          const t = lowPaidHighHead[0];
+          bullets.push(`Large team below company average: <span class="text-white font-bold">${escapeHtml(t.deptLabel)}</span> (Headcount ${t.headcount}, Avg ${fmt(Math.round(t.avg))}).`);
+        }
+      }
+
+      const vals = rows.map(r=>salaryVal(r[salaryKey])).filter(v=>v>0).sort((a,b)=>a-b);
+      const p = percentiles(vals, [0.75, 0.9]);
+      const p75 = p.p75 || 0;
+      const p90 = p.p90 || 0;
+      const outlierCut = Math.max(p90, p75 * 2);
+      const outliers = outlierCut ? vals.filter(v => v >= outlierCut).length : 0;
+      if (outliers) bullets.push(`Potential salary outliers: ${outliers} employees ≥ ${fmt(Math.round(outlierCut))}.`);
+
+      if (!bullets.length) { el.textContent = 'No insights available.'; return; }
+      el.innerHTML = `<ul class="list-disc pl-5">${bullets.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+    }
     function renderChart(id, labels, data, type, label){
+      const isLight = document.body.classList.contains('theme-light');
+      const tickColor = isLight ? '#111827' : '#94a3b8';
+      const gridColor = isLight ? 'rgba(17, 24, 39, 0.12)' : 'rgba(148, 163, 184, 0.18)';
+      const tooltipBg = isLight ? 'rgba(253, 251, 247, 0.98)' : 'rgba(15, 23, 42, 0.95)';
+      const tooltipBorder = isLight ? 'rgba(184, 134, 11, 0.35)' : '#334155';
+      const tooltipTitle = isLight ? '#111827' : '#ffffff';
+      const tooltipBody = isLight ? '#111827' : '#cbd5e1';
       const ctx = document.getElementById(id).getContext('2d');
       const ref = (id==='histChart'? histChart : id==='avgByRating'? ratingChart : deptChart);
       if(ref && ref.destroy) ref.destroy();
       const cfg = {
         type,
         data: { labels, datasets: [{ label, data, backgroundColor:'rgba(59,130,246,0.3)', borderColor:'#3b82f6', borderWidth:1 }] },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#94a3b8' } } }, scales:{ x:{ ticks:{ color:'#94a3b8' } }, y:{ ticks:{ color:'#94a3b8' }, beginAtZero:true } } }
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{ labels:{ color: tickColor } },
+            tooltip: {
+              backgroundColor: tooltipBg,
+              borderColor: tooltipBorder,
+              borderWidth: 1,
+              titleColor: tooltipTitle,
+              bodyColor: tooltipBody
+            }
+          },
+          scales:{
+            x:{ ticks:{ color: tickColor }, grid:{ color: gridColor } },
+            y:{ ticks:{ color: tickColor }, grid:{ color: gridColor }, beginAtZero:true }
+          }
+        }
       };
       const chart = new Chart(ctx, cfg);
       if(id==='histChart') histChart = chart;
@@ -842,6 +1213,7 @@
             if (!localStorage.getItem('theme::mode') || localStorage.getItem('theme::mode') === 'system') {
                 if (e.matches) document.body.classList.add('theme-light');
                 else document.body.classList.remove('theme-light');
+                try { drawHist(); drawAvgByRating(); drawAvgByDept(); } catch {}
             }
         });
 
@@ -850,6 +1222,7 @@
             themeBtn.addEventListener('click', () => {
                 const lightActive = document.body.classList.toggle('theme-light');
                 try { localStorage.setItem('theme::mode', lightActive ? 'light' : 'dark'); } catch {}
+                try { drawHist(); drawAvgByRating(); drawAvgByDept(); } catch {}
             });
             themeBtn.addEventListener('dblclick', () => {
                 try { 
@@ -858,10 +1231,132 @@
                     if (sysLight) document.body.classList.add('theme-light');
                     else document.body.classList.remove('theme-light');
                     showToast('Reset to System Theme');
+                    try { drawHist(); drawAvgByRating(); drawAvgByDept(); } catch {}
                 } catch {}
             });
         }
     } catch {}
-  </script>
-</body>
-</html>
+   </script>
+
+   <!-- Particle Wave Animation Script -->
+   <script>
+       (function initParticleWave() {
+           const canvas = document.getElementById('particle-canvas');
+           const ctx = canvas.getContext('2d');
+
+           const config = {
+               particleCount: 180,
+               waveAmplitude: 80,
+               waveFrequency: 0.008,
+               particleSpeed: 0.8,
+               colors: [
+                   'rgba(139, 92, 246, 0.6)',   // violet-500
+                   'rgba(167, 139, 250, 0.5)',  // violet-400
+                   'rgba(196, 181, 253, 0.4)',  // violet-300
+                   'rgba(168, 85, 247, 0.5)',   // purple-500
+                   'rgba(192, 132, 252, 0.4)',  // purple-400
+               ],
+               connectionDistance: 120,
+               baseYRatio: 0.6
+           };
+
+           let width, height;
+           let particles = [];
+           let time = 0;
+
+           function resize() {
+               const dpr = window.devicePixelRatio || 1;
+               width = window.innerWidth;
+               height = window.innerHeight;
+
+               canvas.width = width * dpr;
+               canvas.height = height * dpr;
+               canvas.style.width = width + 'px';
+               canvas.style.height = height + 'px';
+               ctx.scale(dpr, dpr);
+
+               initParticles();
+           }
+
+           class Particle {
+               constructor() {
+                   this.reset();
+                   this.x = Math.random() * width;
+               }
+
+               reset() {
+                   this.x = -50;
+                   this.baseY = height * config.baseYRatio;
+                   this.y = this.baseY + (Math.random() - 0.5) * 100;
+                   this.size = Math.random() * 2 + 1;
+                   this.speed = config.particleSpeed + Math.random() * 0.5;
+                   this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
+                   this.waveOffset = Math.random() * Math.PI * 2;
+                   this.waveAmplitude = config.waveAmplitude * (0.5 + Math.random() * 0.5);
+                   this.alpha = 0.3 + Math.random() * 0.5;
+               }
+
+               update() {
+                   this.x += this.speed;
+                   this.y = this.baseY +
+                            Math.sin(this.x * config.waveFrequency + time * 0.02 + this.waveOffset) * this.waveAmplitude +
+                            Math.sin(this.x * config.waveFrequency * 0.5 + time * 0.01) * (this.waveAmplitude * 0.3);
+
+                   if (this.x > width + 50) {
+                       this.reset();
+                   }
+               }
+
+               draw() {
+                   ctx.beginPath();
+                   ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                   ctx.fillStyle = this.color;
+                   ctx.fill();
+               }
+           }
+
+           function initParticles() {
+               particles = [];
+               for (let i = 0; i < config.particleCount; i++) {
+                   particles.push(new Particle());
+               }
+           }
+
+           function drawConnections() {
+               for (let i = 0; i < particles.length; i++) {
+                   for (let j = i + 1; j < particles.length; j++) {
+                       const dx = particles[i].x - particles[j].x;
+                       const dy = particles[i].y - particles[j].y;
+                       const dist = Math.sqrt(dx * dx + dy * dy);
+
+                       if (dist < config.connectionDistance) {
+                           const alpha = (1 - dist / config.connectionDistance) * 0.15;
+                           ctx.beginPath();
+                           ctx.moveTo(particles[i].x, particles[i].y);
+                           ctx.lineTo(particles[j].x, particles[j].y);
+                           ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
+                           ctx.lineWidth = 0.5;
+                           ctx.stroke();
+                       }
+                   }
+               }
+           }
+
+           function animate() {
+               ctx.clearRect(0, 0, width, height);
+               time += 1;
+               particles.forEach(p => {
+                   p.update();
+                   p.draw();
+               });
+               drawConnections();
+               requestAnimationFrame(animate);
+           }
+
+           resize();
+           window.addEventListener('resize', resize);
+           animate();
+       })();
+   </script>
+ </body>
+ </html>

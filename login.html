@@ -5,17 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background-color:#0f172a; color:#e2e8f0; font-family: Inter, system-ui, -apple-system, sans-serif }
-    .card { background:#1e293b; border:1px solid #334155; border-radius:0.75rem; box-shadow:0 6px 18px rgba(2,6,23,0.35) }
-    .input-dark { background:#0f172a; border:1px solid #334155; color:#fff }
-    .input-dark:focus { outline:none; border-color:#3b82f6 }
+  <script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+  <script src="https://unpkg.com/postprocessing@6.33.3/build/postprocessing.min.js"></script>
+    <style>
+     :root { --primary:#5C001E; --accent:#B8860B; --bg-dark:#121212; --text-dark:#EAEAEA; --card-dark:rgba(24,24,24,0.92); --border-dark:rgba(184,134,11,0.32); --input-dark:rgba(18,18,18,0.92); }
+     body { background: radial-gradient(circle at 50% 0%, rgba(92,0,30,0.35), transparent 40%), linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 55%, #080808 100%); color:var(--text-dark); font-family: Inter, system-ui, -apple-system, sans-serif; position:relative; overflow-x:hidden; }
+    .card { background:var(--card-dark); border:1px solid var(--border-dark); border-radius:0.75rem; box-shadow:0 6px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(184,134,11,0.10); transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; transform: translateZ(0); will-change: transform, box-shadow; }
+    .card:hover { border-color: rgba(184,134,11,0.70); box-shadow: 0 10px 26px rgba(0,0,0,0.55), 0 0 0 1px rgba(184,134,11,0.22), 0 0 22px rgba(184,134,11,0.20), 0 0 44px rgba(92,0,30,0.18); transform: translateY(-2px); }
+    @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+    .input-dark { background:var(--input-dark); border:1px solid rgba(184,134,11,0.28); color:var(--text-dark) }
+    .input-dark:focus { outline:none; border-color:var(--accent) }
+    .brand-mark { background: linear-gradient(135deg, var(--primary), var(--accent)); }
+    .btn-primary { background: var(--primary); }
+    .btn-primary:hover { background: var(--accent); }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
+  <div id="webgl-bg" class="absolute inset-0 -z-10 pointer-events-none"></div>
   <div class="w-full max-w-sm card p-6">
     <div class="flex items-center gap-3 mb-4">
-      <div class="h-6 w-6 rounded bg-gradient-to-tr from-blue-500 to-emerald-500"></div>
+      <div class="h-6 w-6 rounded brand-mark"></div>
       <div class="text-white font-bold tracking-wide">Curve Analyzer</div>
     </div>
     <h1 class="text-lg font-bold mb-2">Sign In</h1>
@@ -29,7 +38,7 @@
         <label class="text-xs text-slate-400 mb-1 block">Password</label>
         <input id="password" type="password" class="w-full p-2 rounded input-dark text-sm">
       </div>
-      <button id="login-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded">Sign In</button>
+      <button id="login-btn" class="w-full btn-primary text-white text-xs font-bold px-3 py-2 rounded">Sign In</button>
       <div id="login-msg" class="text-xs text-red-400 hidden"></div>
     </div>
     <div class="text-xs text-slate-500 mt-4">Security: Sessions are cookie-based. No credentials are stored in the browser.</div>
@@ -61,5 +70,6 @@
     document.getElementById('login-btn').addEventListener('click', doLogin);
     document.getElementById('password').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
   </script>
+  <script src="ocean.js"></script>
 </body>
 </html>
