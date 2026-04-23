@@ -3055,7 +3055,7 @@
             const deptKey = detectDeptKeyFromRows(rowsSource);
             const levelKey = detectLevelKeyFromRows(rowsSource);
             const ratingKey = detectRatingKeyFromRows(rowsSource);
-            let rows = rowsSource.slice();
+            let rows = getFilteredRowsAndCols(rowsSource).rows;
             if (perfDepartmentFilter && deptKey) {
                 rows = rows.filter(r => deptMatches(r[deptKey], perfDepartmentFilter));
             }
@@ -3425,13 +3425,16 @@
             if (!wrap) return;
 
             const rowsSource = getBaseRowsSource();
-            const wantedLevel = getActiveRoleLevel();
-
+            const filtered = getFilteredRowsAndCols(rowsSource || []);
+            const rows = filtered.rows || [];
+            const cols = filtered.cols || detectCoreColumnsFromRows(rowsSource || []);
+            const deptKey = cols && cols.deptKey;
+            const sourceForDepts = rows.length ? rows : (rowsSource || []);
             const list = (selectedDepartments && selectedDepartments.length)
                 ? selectedDepartments.slice()
-                : getDepartmentOptionsFromRows(rowsSource || []);
+                : (deptKey ? getDepartmentOptionsFromRows(sourceForDepts) : []);
             const depts = Array.from(new Set(list.filter(Boolean)));
-
+            const scopedRows = rows.length ? rows : (rowsSource || []);
             const header = `
                 <div class="curve-metrics-row curve-metrics-header">
                     <div class="curve-metrics-cell curve-metrics-label">Department</div>
@@ -3441,7 +3444,7 @@
             const row = (dept) => `
                 <div class="curve-metrics-row">
                     <div class="curve-metrics-cell curve-metrics-label curve-metrics-subtle" title="${escapeHtml(String(dept))}">${escapeHtml(String(dept))}</div>
-                    ${getCountsForDepartments([dept], { rowsSource, level: wantedLevel }).counts.map((v, idx) => `
+                    ${getCountsForDepartments([dept], { rowsSource: scopedRows }).counts.map((v, idx) => `
                         <div class="curve-metrics-cell text-white font-bold" style="background:${CATEGORIES[idx].bg}">
                             ${v}
                         </div>
