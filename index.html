@@ -2607,6 +2607,27 @@
             `).join('');
         }
 
+        function renderTargetBars() {
+            const wrap = document.getElementById('target-bar-list');
+            if (!wrap) return;
+            const rows = [
+                { label: 'R1 Poor', value: Number(targets[0] || 0), color: 'linear-gradient(90deg, rgba(239,68,68,0.95), rgba(248,113,113,0.72))' },
+                { label: 'R2 Satisfactory', value: Number(targets[1] || 0), color: 'linear-gradient(90deg, rgba(249,115,22,0.92), rgba(251,146,60,0.72))' },
+                { label: 'R3 Good', value: Number(targets[2] || 0), color: 'linear-gradient(90deg, rgba(245,158,11,0.92), rgba(250,204,21,0.72))' },
+                { label: 'R4 Exceeds', value: Number(targets[3] || 0), color: 'linear-gradient(90deg, rgba(34,197,94,0.88), rgba(74,222,128,0.70))' },
+                { label: 'R5 Outstanding', value: Number(targets[4] || 0), color: 'linear-gradient(90deg, rgba(22,163,74,0.95), rgba(134,239,172,0.72))' }
+            ];
+            wrap.innerHTML = rows.map(row => `
+                <div class="target-bar-row">
+                    <div class="target-bar-label">${row.label}</div>
+                    <div class="target-bar-track">
+                        <div class="target-bar-fill" style="width:${Math.max(0, Math.min(100, row.value))}%; background:${row.color};"></div>
+                    </div>
+                    <div class="target-bar-value">${row.value.toFixed(row.value % 1 ? 1 : 0)}%</div>
+                </div>
+            `).join('');
+        }
+
         // --- Chart Logic ---
         async function ensureHtml2canvasLoaded() {
             if (window.html2canvas) return true;
