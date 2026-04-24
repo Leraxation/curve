@@ -650,42 +650,41 @@
                             <canvas id="mainChart"></canvas>
                         </div>
                         <div id="curve-metrics" class="curve-metrics"></div>
+                        <div id="perf-level-card" class="curve-metrics level-rating-matrix">
+                            <div class="flex flex-wrap items-center justify-between gap-3 px-3 py-3">
+                                <h3 class="text-base font-bold text-white">Performance Rating by Level</h3>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-xs text-slate-400">Department</label>
+                                    <select id="perf-dept" class="p-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200">
+                                        <option value="">All</option>
+                                    </select>
+                                    <button id="perf-reset" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Reset Edits</button>
+                                    <button id="perf-export" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs">
+                                    <thead class="bg-slate-900 text-slate-400">
+                                        <tr>
+                                            <th class="px-2 py-2 text-left">Level</th>
+                                            <th class="px-2 py-2 text-left">Who</th>
+                                            <th class="px-2 py-2 text-right">R1</th>
+                                            <th class="px-2 py-2 text-right">R2</th>
+                                            <th class="px-2 py-2 text-right">R3</th>
+                                            <th class="px-2 py-2 text-right">R4</th>
+                                            <th class="px-2 py-2 text-right">R5</th>
+                                            <th class="px-2 py-2 text-right">Unfavorable %</th>
+                                            <th class="px-2 py-2 text-right">Favorable %</th>
+                                            <th class="px-2 py-2 text-right">Average</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="perf-body" class="divide-y divide-slate-800"></tbody>
+                                </table>
+                            </div>
+                            <div id="perf-scope-note" class="px-3 py-2 text-[11px] text-slate-400">Targets: 5%, 15%, 60%, 15%, 5% (R1-R5)</div>
+                        </div>
                         <div id="level-rating-matrix" class="curve-metrics dept-rating-matrix"></div>
                     </div>
-                </div>
-
-                <div class="card p-6">
-                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-                        <h3 class="text-lg font-bold text-white">Performance Rating by Level</h3>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs text-slate-400">Department</label>
-                            <select id="perf-dept" class="p-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200">
-                                <option value="">All</option>
-                            </select>
-                            <button id="perf-reset" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Reset Edits</button>
-                            <button id="perf-export" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Export CSV</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead class="bg-slate-900 text-slate-400">
-                                <tr>
-                                    <th class="px-2 py-2 text-left">Level</th>
-                                    <th class="px-2 py-2 text-left">Who</th>
-                                    <th class="px-2 py-2 text-right">R1</th>
-                                    <th class="px-2 py-2 text-right">R2</th>
-                                    <th class="px-2 py-2 text-right">R3</th>
-                                    <th class="px-2 py-2 text-right">R4</th>
-                                    <th class="px-2 py-2 text-right">R5</th>
-                                    <th class="px-2 py-2 text-right">Unfavorable %</th>
-                                    <th class="px-2 py-2 text-right">Favorable %</th>
-                                    <th class="px-2 py-2 text-right">Average</th>
-                                </tr>
-                            </thead>
-                            <tbody id="perf-body" class="divide-y divide-slate-800"></tbody>
-                        </table>
-                    </div>
-                    <div class="text-[11px] text-slate-400 mt-2">Targets: 5%, 15%, 60%, 15%, 5% (R1–R5)</div>
                 </div>
 
                 <!-- Insights Panel -->
@@ -1193,6 +1192,7 @@
         const perfBodyEl = document.getElementById('perf-body');
         const perfResetBtn = document.getElementById('perf-reset');
         const perfExportBtn = document.getElementById('perf-export');
+        const perfScopeNoteEl = document.getElementById('perf-scope-note');
          let currCode = 'OMR';
         const LEVEL_WHO_LABELS = {
             N1: 'Chiefs',
@@ -1721,7 +1721,8 @@
             if (perfDeptEl) {
                 perfDeptEl.addEventListener('change', () => {
                     perfDepartmentFilter = perfDeptEl.value || '';
-                    renderPerformanceByLevelTable();
+                    applyDepartmentSelection(perfDepartmentFilter ? [perfDepartmentFilter] : []);
+                    writeStateToUrl();
                 });
             }
             if (perfResetBtn) {
@@ -2468,8 +2469,9 @@
             if (deptFilterContainer) deptFilterContainer.classList.add('hidden');
             if (perfDeptEl) {
                 perfDeptEl.innerHTML = `<option value="">All</option>` + list.map(d => `<option value="${d}">${d}</option>`).join('');
-                perfDeptEl.value = list.includes(perfDepartmentFilter) ? perfDepartmentFilter : '';
-                if (perfDeptEl.value !== perfDepartmentFilter) perfDepartmentFilter = '';
+                const perfCurrent = current || perfDepartmentFilter || '';
+                perfDeptEl.value = list.includes(perfCurrent) ? perfCurrent : '';
+                perfDepartmentFilter = perfDeptEl.value || '';
             }
             syncDepartmentSelectors();
             renderDeptChips();
@@ -2482,6 +2484,7 @@
         function applyDepartmentSelection(list) {
             const first = Array.isArray(list) && list.length ? String(list[0] || '').trim() : '';
             selectedDepartments = first ? [first] : [];
+            perfDepartmentFilter = first || '';
             syncDepartmentSelectors();
             renderDeptChips();
             refreshFilteredResults();
@@ -3179,6 +3182,10 @@
             if (!perfBodyEl) return;
             const m = getPerformanceByLevelMetrics();
             const hasData = !!(m.ratingKey && m.levelKey);
+            const activeDept = perfDepartmentFilter || 'All Departments';
+            if (perfScopeNoteEl) {
+                perfScopeNoteEl.textContent = `Selected Department: ${activeDept}. Targets: 5%, 15%, 60%, 15%, 5% (R1-R5)`;
+            }
 
             const key = getPerfEditBucketKey();
             if (!perfByLevelEdits[key]) perfByLevelEdits[key] = { target: [5,15,60,15,5], cells: {} };
