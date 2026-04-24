@@ -1948,22 +1948,10 @@
             if (!rows || !rows.length) return null;
             const keys = Object.keys(rows[0]);
             const columnDKey = keys[3] || null;
+            // Hard-lock departments to Excel column D as requested.
+            if (columnDKey) return columnDKey;
             const namedKey = keys.find(k => normKey(k) === 'department') || keys.find(k => normKey(k).includes('department'));
             if (namedKey) return namedKey;
-            let bestKey = null;
-            let bestScore = -1;
-            for (const key of keys) {
-                const score = scoreDepartmentColumn(rows, key);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestKey = key;
-                }
-            }
-            const columnDScore = columnDKey ? scoreDepartmentColumn(rows, columnDKey) : -1;
-            // Prefer exact Excel column D when it clearly contains department values.
-            if (columnDKey && columnDScore >= 2 && columnDScore >= (bestScore * 0.6)) return columnDKey;
-            if (bestKey && bestScore >= 2) return bestKey;
-            if (columnDKey) return columnDKey;
             return null;
         }
 
@@ -2140,7 +2128,7 @@
             const mm = getStoredMapping(currentFileName) || {};
             return {
                 nameKey: (mm.nameKey && keys.includes(mm.nameKey)) ? mm.nameKey : hName,
-                deptKey: (mm.deptKey && keys.includes(mm.deptKey)) ? mm.deptKey : hDept,
+                deptKey: hDept,
                 positionKey: (mm.positionKey && keys.includes(mm.positionKey)) ? mm.positionKey : hPosition,
                 sectionKey: (mm.sectionKey && keys.includes(mm.sectionKey)) ? mm.sectionKey : hSection,
                 sbuKey: (mm.sbuKey && keys.includes(mm.sbuKey)) ? mm.sbuKey : hSbu,
