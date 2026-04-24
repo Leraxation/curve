@@ -2687,10 +2687,53 @@
             const wasHidden = el.classList.contains('hidden');
             if (wasHidden) el.classList.remove('hidden');
 
+            // html2canvas can miss live input values, so render table inputs as static text in the snapshot clone.
+            const perfInputs = Array.from(el.querySelectorAll('input[data-perf-input="1"]')).map((input) => {
+                const style = window.getComputedStyle(input);
+                return {
+                    value: input.value,
+                    color: style.color,
+                    fontSize: style.fontSize,
+                    fontWeight: style.fontWeight,
+                    textAlign: style.textAlign,
+                    padding: style.padding,
+                    border: style.border,
+                    borderRadius: style.borderRadius,
+                    width: style.width,
+                    minHeight: style.height,
+                    background: style.backgroundColor
+                };
+            });
+
             const canvas = await window.html2canvas(el, {
                 backgroundColor: null,
                 scale: Math.min(2, window.devicePixelRatio || 1),
-                useCORS: true
+                useCORS: true,
+                onclone: (clonedDoc) => {
+                    const clonedInputs = Array.from(clonedDoc.querySelectorAll('#curve-copy-area input[data-perf-input="1"]'));
+                    clonedInputs.forEach((input, idx) => {
+                        const snapshot = perfInputs[idx];
+                        if (!snapshot) return;
+                        const valueBox = clonedDoc.createElement('div');
+                        valueBox.textContent = snapshot.value || '0';
+                        valueBox.style.boxSizing = 'border-box';
+                        valueBox.style.display = 'inline-flex';
+                        valueBox.style.alignItems = 'center';
+                        valueBox.style.justifyContent = snapshot.textAlign === 'left' ? 'flex-start' : 'flex-end';
+                        valueBox.style.width = snapshot.width || '5rem';
+                        valueBox.style.minHeight = snapshot.minHeight || '2rem';
+                        valueBox.style.padding = snapshot.padding || '0.25rem';
+                        valueBox.style.border = snapshot.border || '1px solid rgba(100, 116, 139, 0.7)';
+                        valueBox.style.borderRadius = snapshot.borderRadius || '0.25rem';
+                        valueBox.style.background = snapshot.background || 'transparent';
+                        valueBox.style.color = snapshot.color || '#ffffff';
+                        valueBox.style.fontSize = snapshot.fontSize || '12px';
+                        valueBox.style.fontWeight = snapshot.fontWeight || '700';
+                        valueBox.style.textAlign = snapshot.textAlign || 'right';
+                        valueBox.style.whiteSpace = 'nowrap';
+                        input.replaceWith(valueBox);
+                    });
+                }
             });
 
             if (wasHidden) el.classList.add('hidden');
