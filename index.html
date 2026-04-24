@@ -1094,12 +1094,13 @@
             'Data and Analytics',
             'Digital and IT',
             'Finance',
-            'Governance Risk',
+            'General Counsel',
+            'Governance Risk and Compliance',
             'Human Resources',
+            'Internal Audit',
+            'Oman Air-Board',
             'Operations',
-            'Supply Chain Management',
-            'General Cousel',
-            'Governance Risk and Compliance'
+            'Supply Chain Management'
         ];
 
         // --- State ---
@@ -1770,6 +1771,28 @@
             return a.includes(b) || b.includes(a);
         }
 
+        function scoreDepartmentColumn(rows, key) {
+            if (!rows || !rows.length || !key) return 0;
+            const sample = rows.slice(0, 200);
+            let score = 0;
+            let nonEmpty = 0;
+            for (const row of sample) {
+                const raw = String(row?.[key] ?? '').trim();
+                if (!raw) continue;
+                nonEmpty++;
+                if (FIXED_DEPARTMENTS.some(dept => deptMatches(raw, dept))) {
+                    score += 3;
+                    continue;
+                }
+                const norm = normalizeDeptValue(raw);
+                if (/\b(department|office|commercial|finance|operations|audit|analytics|resources|counsel|board|governance|compliance|supply chain|digital|it)\b/.test(norm)) {
+                    score += 1;
+                }
+            }
+            if (!nonEmpty) return 0;
+            return score;
+        }
+
         function parseRatingNumber(v) {
             if (typeof v === 'number') return Math.round(v);
             if (typeof v === 'string') {
@@ -1924,10 +1947,23 @@
         function detectDeptKeyFromRows(rows) {
             if (!rows || !rows.length) return null;
             const keys = Object.keys(rows[0]);
-            // Prefer Excel column D exactly, as requested by the dataset layout.
-            if (keys[3]) return keys[3];
-            let key = keys.find(k => normKey(k) === 'department') || keys.find(k => normKey(k).includes('department'));
-            if (key) return key;
+            const columnDKey = keys[3] || null;
+            const namedKey = keys.find(k => normKey(k) === 'department') || keys.find(k => normKey(k).includes('department'));
+            if (namedKey) return namedKey;
+            let bestKey = null;
+            let bestScore = -1;
+            for (const key of keys) {
+                const score = scoreDepartmentColumn(rows, key);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestKey = key;
+                }
+            }
+            const columnDScore = columnDKey ? scoreDepartmentColumn(rows, columnDKey) : -1;
+            // Prefer exact Excel column D when it clearly contains department values.
+            if (columnDKey && columnDScore >= 2 && columnDScore >= (bestScore * 0.6)) return columnDKey;
+            if (bestKey && bestScore >= 2) return bestKey;
+            if (columnDKey) return columnDKey;
             return null;
         }
 
@@ -2494,9 +2530,9 @@
                 : (fullDataJson && fullDataJson.length ? fullDataJson : currentSheetJson);
             if (!rowsSource || rowsSource.length === 0) return { counts: [0,0,0,0,0], n: 0 };
             const cols = detectCoreColumnsFromRows(rowsSource);
-            const deptKey = cols.deptKey;
-            const ratingKey = cols.ratingKey;
-            const levelKey = detectLevelKeyFromRows(rowsSource);
+            const deptKey = options.deptKey || cols.deptKey;
+            const ratingKey = options.ratingKey || cols.ratingKey;
+            const levelKey = options.levelKey || detectLevelKeyFromRows(rowsSource);
             const wantedLevel = normalizeLevelValue(options.level || '');
             if (!deptKey || !ratingKey) return { counts: [0,0,0,0,0], n: 0 };
             let rows = rowsSource.slice();
@@ -3429,6 +3465,8 @@
             const rows = filtered.rows || [];
             const cols = filtered.cols || detectCoreColumnsFromRows(rowsSource || []);
             const deptKey = cols && cols.deptKey;
+            const ratingKey = cols && cols.ratingKey;
+            const levelKey = detectLevelKeyFromRows(rowsSource || []);
             const sourceForDepts = rows.length ? rows : (rowsSource || []);
             const list = (selectedDepartments && selectedDepartments.length)
                 ? selectedDepartments.slice()
@@ -3444,7 +3482,7 @@
             const row = (dept) => `
                 <div class="curve-metrics-row">
                     <div class="curve-metrics-cell curve-metrics-label curve-metrics-subtle" title="${escapeHtml(String(dept))}">${escapeHtml(String(dept))}</div>
-                    ${getCountsForDepartments([dept], { rowsSource: scopedRows }).counts.map((v, idx) => `
+                    ${getCountsForDepartments([dept], { rowsSource: scopedRows, deptKey, ratingKey, levelKey }).counts.map((v, idx) => `
                         <div class="curve-metrics-cell text-white font-bold" style="background:${CATEGORIES[idx].bg}">
                             ${v}
                         </div>
