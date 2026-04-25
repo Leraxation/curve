@@ -9,32 +9,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="window.xlsxLoadError = true"></script>
     <style>
         :root {
-            --primary: #5C001E;
-            --accent: #B8860B;
-            --bg-dark: #121212;
-            --bg-light: #FDFBF7;
-            --text-dark: #EAEAEA;
-            --text-light: #333333;
-            --card-dark: rgba(24, 24, 24, 0.92);
+            --primary: #6a1734;
+            --accent: #c6a15b;
+            --bg-dark: #0f1117;
+            --bg-light: #f8f5ef;
+            --text-dark: #f4efe6;
+            --text-light: #2d3440;
+            --card-dark: rgba(18, 22, 31, 0.94);
             --card-light: #ffffff;
-            --border-dark: rgba(184, 134, 11, 0.32);
-            --border-light: rgba(184, 134, 11, 0.28);
-            --input-dark: rgba(18, 18, 18, 0.92);
+            --border-dark: rgba(198, 161, 91, 0.28);
+            --border-light: rgba(198, 161, 91, 0.26);
+            --input-dark: rgba(12, 16, 24, 0.94);
             --input-light: #ffffff;
+            --surface-dark: #171c26;
+            --surface-dark-2: #1c2230;
+            --glow-dark: rgba(106, 23, 52, 0.22);
         }
         body {
-            background:
-                radial-gradient(circle at 50% 0%, rgba(92, 0, 30, 0.35), transparent 38%),
-                radial-gradient(circle at 100% 30%, rgba(184, 134, 11, 0.08), transparent 40%),
-                linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 55%, #080808 100%);
+            background: linear-gradient(180deg, #0f1117 0%, #111520 52%, #0b0e14 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: var(--text-dark);
             position: relative;
             overflow-x: hidden;
         }
-
-        /* Digital Particle Wave Background */
-        #particle-canvas {
+        body::before {
+            content: "";
             position: fixed;
             top: 0;
             left: 0;
@@ -42,44 +41,31 @@
             height: 100%;
             z-index: -1;
             pointer-events: none;
-            opacity: 0.46;
-        }
-
-        /* Purple gradient overlay with transparency */
-        .purple-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             background:
-                radial-gradient(ellipse at 50% 0%, rgba(92, 0, 30, 0.22) 0%, transparent 44%),
-                radial-gradient(ellipse at 0% 50%, rgba(184, 134, 11, 0.08) 0%, transparent 38%),
-                radial-gradient(ellipse at 100% 50%, rgba(92, 0, 30, 0.14) 0%, transparent 38%);
-            z-index: -1;
-            pointer-events: none;
+                radial-gradient(circle at 18% 12%, rgba(106, 23, 52, 0.24), transparent 30%),
+                radial-gradient(circle at 82% 8%, rgba(198, 161, 91, 0.12), transparent 24%),
+                radial-gradient(circle at 50% 100%, rgba(106, 23, 52, 0.14), transparent 34%);
         }
         .card {
-            background: radial-gradient(125% 125% at 50% 100%, rgba(18, 18, 18, 0.92) 42%, rgba(92, 0, 30, 0.16) 100%);
-            border-radius: 0.75rem;
+            background: linear-gradient(180deg, rgba(25, 30, 40, 0.96) 0%, rgba(17, 21, 30, 0.96) 100%);
+            border-radius: 0.9rem;
             border: 1px solid var(--border-dark);
-            box-shadow: 0 6px 18px rgba(2, 6, 23, 0.35), 0 0 0 1px rgba(184, 134, 11, 0.08);
+            box-shadow: 0 18px 42px rgba(2, 6, 23, 0.36), 0 0 0 1px rgba(198, 161, 91, 0.06);
             transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
             transform: translateZ(0);
             will-change: transform, box-shadow;
         }
         .card:hover {
-            border-color: rgba(184, 134, 11, 0.65);
+            border-color: rgba(198, 161, 91, 0.52);
             box-shadow:
-                0 10px 26px rgba(2, 6, 23, 0.45),
-                0 0 0 1px rgba(184, 134, 11, 0.22),
-                0 0 22px rgba(184, 134, 11, 0.22),
-                0 0 44px rgba(92, 0, 30, 0.18);
+                0 18px 46px rgba(2, 6, 23, 0.42),
+                0 0 0 1px rgba(198, 161, 91, 0.14),
+                0 10px 28px var(--glow-dark);
             transform: translateY(-2px);
         }
         .input-dark {
             background-color: var(--input-dark);
-            border: 1px solid rgba(184, 134, 11, 0.28);
+            border: 1px solid rgba(198, 161, 91, 0.24);
             color: var(--text-dark);
         }
         .input-dark:focus {
@@ -138,43 +124,60 @@
         body.theme-light .sticky.top-0 .text-slate-200 {
             color: var(--primary) !important;
         }
+        body.theme-mikenzy,
         body.theme-purple {
             background:
-                radial-gradient(circle at 50% 0%, rgba(92, 0, 30, 0.45), transparent 42%),
-                radial-gradient(circle at 100% 30%, rgba(184, 134, 11, 0.10), transparent 42%),
-                linear-gradient(180deg, var(--bg-dark) 0%, #0b0b0b 55%, #070707 100%);
+                linear-gradient(180deg, #120f1a 0%, #171322 42%, #0e1018 100%);
             color: var(--text-dark);
         }
-        body.theme-purple .card {
-            background: var(--card-dark);
-            border: 1px solid var(--border-dark);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(184, 134, 11, 0.10);
+        body.theme-mikenzy::before,
+        body.theme-purple::before {
+            background:
+                radial-gradient(circle at 16% 10%, rgba(123, 63, 116, 0.32), transparent 28%),
+                radial-gradient(circle at 80% 10%, rgba(198, 161, 91, 0.16), transparent 24%),
+                radial-gradient(circle at 50% 100%, rgba(92, 27, 64, 0.18), transparent 34%);
         }
+        body.theme-mikenzy .card,
+        body.theme-purple .card {
+            background: linear-gradient(180deg, rgba(39, 17, 56, 0.96) 0%, rgba(26, 16, 44, 0.98) 100%);
+            border: 1px solid rgba(198, 161, 91, 0.24);
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(198, 161, 91, 0.06);
+        }
+        body.theme-mikenzy .card:hover,
         body.theme-purple .card:hover {
-            border-color: rgba(184, 134, 11, 0.70);
+            border-color: rgba(198, 161, 91, 0.48);
             box-shadow:
-                0 16px 36px rgba(0, 0, 0, 0.55),
-                0 0 0 1px rgba(184, 134, 11, 0.26),
-                0 0 26px rgba(184, 134, 11, 0.20),
-                0 0 50px rgba(92, 0, 30, 0.22);
+                0 18px 48px rgba(0, 0, 0, 0.46),
+                0 0 0 1px rgba(198, 161, 91, 0.12),
+                0 12px 30px rgba(106, 23, 52, 0.2);
         }
         @media (prefers-reduced-motion: reduce) {
             .card { transition: none; }
             .card:hover { transform: none; }
         }
+        body.theme-mikenzy .input-dark,
         body.theme-purple .input-dark {
             background-color: var(--input-dark);
-            border-color: rgba(184, 134, 11, 0.34);
+            border-color: rgba(198, 161, 91, 0.3);
             color: var(--text-dark);
         }
+        body.theme-mikenzy .input-dark:focus,
         body.theme-purple .input-dark:focus { border-color: var(--accent); }
+        body.theme-mikenzy .text-white,
         body.theme-purple .text-white { color: var(--text-dark) !important; }
-        body.theme-purple .text-slate-500 { color: rgba(234, 234, 234, 0.70) !important; }
-        body.theme-purple .text-slate-400 { color: rgba(234, 234, 234, 0.78) !important; }
-        body.theme-purple .text-slate-300 { color: rgba(234, 234, 234, 0.86) !important; }
-        body.theme-purple .text-slate-200 { color: rgba(234, 234, 234, 0.92) !important; }
-        body.theme-purple ::-webkit-scrollbar-track { background: #0d0d0d; }
+        body.theme-mikenzy .text-slate-500,
+        body.theme-purple .text-slate-500 { color: rgba(235, 228, 218, 0.68) !important; }
+        body.theme-mikenzy .text-slate-400,
+        body.theme-purple .text-slate-400 { color: rgba(235, 228, 218, 0.78) !important; }
+        body.theme-mikenzy .text-slate-300,
+        body.theme-purple .text-slate-300 { color: rgba(244, 239, 230, 0.88) !important; }
+        body.theme-mikenzy .text-slate-200,
+        body.theme-purple .text-slate-200 { color: rgba(244, 239, 230, 0.94) !important; }
+        body.theme-mikenzy ::-webkit-scrollbar-track,
+        body.theme-purple ::-webkit-scrollbar-track { background: #15131c; }
+        body.theme-mikenzy ::-webkit-scrollbar-thumb,
         body.theme-purple ::-webkit-scrollbar-thumb { background: var(--primary); }
+        body.theme-mikenzy ::-webkit-scrollbar-thumb:hover,
         body.theme-purple ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
         .text-blue-400,
@@ -187,15 +190,15 @@
         .hover\:bg-blue-500:hover { background-color: #7a0028 !important; }
         .screensaver-on {
             border-color: var(--accent) !important;
-            background: rgba(92, 0, 30, 0.22) !important;
-            color: #f6edd2 !important;
+            background: rgba(106, 23, 52, 0.24) !important;
+            color: #f4efe6 !important;
         }
         .bg-slate-900,
         .bg-slate-900\/70,
-        .bg-slate-900\/50 { background-color: rgba(18, 18, 18, 0.92) !important; }
-        .bg-slate-800 { background-color: rgba(24, 24, 24, 0.92) !important; }
-        .bg-slate-700 { background-color: rgba(34, 34, 34, 0.92) !important; }
-        .hover\:bg-slate-700:hover { background-color: rgba(44, 44, 44, 0.95) !important; }
+        .bg-slate-900\/50 { background-color: rgba(17, 21, 30, 0.92) !important; }
+        .bg-slate-800 { background-color: rgba(23, 28, 38, 0.94) !important; }
+        .bg-slate-700 { background-color: rgba(29, 35, 48, 0.94) !important; }
+        .hover\:bg-slate-700:hover { background-color: rgba(37, 45, 61, 0.97) !important; }
         .border-slate-800,
         .border-slate-700,
         .border-slate-600 { border-color: var(--border-dark) !important; }
@@ -379,15 +382,19 @@
             border-color: #cbd5e1 !important;
             color: #000000 !important;
         }
+        body.theme-mikenzy .curve-metrics,
         body.theme-purple .curve-metrics {
             background: rgba(59, 9, 77, 0.74);
             border-color: rgba(232, 121, 249, 0.22);
         }
+        body.theme-mikenzy .curve-metrics-header,
+        body.theme-mikenzy .curve-metrics-label,
         body.theme-purple .curve-metrics-header,
         body.theme-purple .curve-metrics-label {
             background: rgba(232, 121, 249, 0.12);
             color: #fff7ff;
         }
+        body.theme-mikenzy .curve-metrics-subtle,
         body.theme-purple .curve-metrics-subtle {
             color: #eed8ff;
         }
@@ -398,11 +405,6 @@
     </style>
 </head>
 <body class="p-0 min-h-screen">
-    <!-- Particle Wave Canvas -->
-    <canvas id="particle-canvas"></canvas>
-    <!-- Purple Gradient Overlay -->
-    <div class="purple-overlay"></div>
-
     <div class="sticky top-0 z-40 backdrop-blur bg-slate-900/70 border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -990,143 +992,6 @@
         </div>
     </div>
 
-    <!-- Particle Wave Animation Script -->
-    <script>
-        (function initParticleWave() {
-            const canvas = document.getElementById('particle-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Configuration
-            const config = {
-                particleCount: 180,
-                waveAmplitude: 62,
-                waveFrequency: 0.0045,
-                particleSpeed: 0.26,
-                colors: [
-                    'rgba(139, 92, 246, 0.6)',   // violet-500
-                    'rgba(167, 139, 250, 0.5)',  // violet-400
-                    'rgba(196, 181, 253, 0.4)',  // violet-300
-                    'rgba(168, 85, 247, 0.5)',   // purple-500
-                    'rgba(192, 132, 252, 0.4)',  // purple-400
-                ],
-                connectionDistance: 120,
-                baseYRatio: 0.6 // particles start at 60% of screen height
-            };
-
-            let width, height;
-            let particles = [];
-            let time = 0;
-
-            // Resize handling
-            function resize() {
-                const dpr = window.devicePixelRatio || 1;
-                width = window.innerWidth;
-                height = window.innerHeight;
-                
-                canvas.width = width * dpr;
-                canvas.height = height * dpr;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-                ctx.scale(dpr, dpr);
-
-                initParticles();
-            }
-
-            // Particle class
-            class Particle {
-                constructor() {
-                    this.reset();
-                    // Random initial position across screen
-                    this.x = Math.random() * width;
-                }
-
-                reset() {
-                    this.x = -50;
-                    this.baseY = height * config.baseYRatio;
-                    this.y = this.baseY + (Math.random() - 0.5) * 100;
-                    this.size = Math.random() * 2 + 1;
-                    this.speed = config.particleSpeed + Math.random() * 0.18;
-                    this.color = config.colors[Math.floor(Math.random() * config.colors.length)];
-                    this.waveOffset = Math.random() * Math.PI * 2;
-                    this.waveAmplitude = config.waveAmplitude * (0.5 + Math.random() * 0.5);
-                    this.alpha = 0.3 + Math.random() * 0.5;
-                }
-
-                update() {
-                    this.x += this.speed;
-                    
-                    // Wave motion: sine wave on Y axis
-                    this.y = this.baseY + 
-                             Math.sin(this.x * config.waveFrequency + time * 0.008 + this.waveOffset) * this.waveAmplitude +
-                             Math.sin(this.x * config.waveFrequency * 0.5 + time * 0.004) * (this.waveAmplitude * 0.24);
-
-                    // Reset if off screen
-                    if (this.x > width + 50) {
-                        this.reset();
-                    }
-                }
-
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fillStyle = this.color;
-                    ctx.fill();
-                }
-            }
-
-            function initParticles() {
-                particles = [];
-                for (let i = 0; i < config.particleCount; i++) {
-                    particles.push(new Particle());
-                }
-            }
-
-            // Draw connections between nearby particles
-            function drawConnections() {
-                for (let i = 0; i < particles.length; i++) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const dx = particles[i].x - particles[j].x;
-                        const dy = particles[i].y - particles[j].y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-
-                        if (dist < config.connectionDistance) {
-                            const alpha = (1 - dist / config.connectionDistance) * 0.08;
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
-                            ctx.lineWidth = 0.5;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-
-            // Animation loop
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                
-                time += 0.35;
-                
-                // Update and draw particles
-                particles.forEach(p => {
-                    p.update();
-                    p.draw();
-                });
-                
-                // Draw connections
-                drawConnections();
-
-                requestAnimationFrame(animate);
-            }
-
-            // Initialize
-            resize();
-            window.addEventListener('resize', resize);
-            animate();
-        })();
-    </script>
-
     <script>
         // --- Constants & Config ---
         const CATEGORIES = [
@@ -1274,18 +1139,19 @@
         }
 
         function applyThemeMode(mode) {
-            document.body.classList.remove('theme-light', 'theme-purple');
-            if (mode === 'light') {
+            const nextMode = mode === 'purple' ? 'mikenzy' : mode;
+            document.body.classList.remove('theme-light', 'theme-purple', 'theme-mikenzy');
+            if (nextMode === 'light') {
                 document.body.classList.add('theme-light');
-            } else if (mode === 'purple') {
-                document.body.classList.add('theme-purple');
+            } else if (nextMode === 'mikenzy') {
+                document.body.classList.add('theme-mikenzy');
             }
             try { applyChartTheme(); } catch {}
         }
 
         function getCurrentThemeMode() {
-            return document.body.classList.contains('theme-purple')
-                ? 'purple'
+            return (document.body.classList.contains('theme-mikenzy') || document.body.classList.contains('theme-purple'))
+                ? 'mikenzy'
                 : document.body.classList.contains('theme-light')
                     ? 'light'
                     : 'dark';
@@ -1417,7 +1283,7 @@
         function runScreensaverStep() {
             const actions = [
                 () => {
-                    applyThemeMode(getCurrentThemeMode() === 'purple' ? 'dark' : 'purple');
+                    applyThemeMode(getCurrentThemeMode() === 'mikenzy' ? 'dark' : 'mikenzy');
                     return true;
                 },
                 () => {
@@ -1485,7 +1351,7 @@
         function init() {
             try {
                 const saved = localStorage.getItem('theme::mode');
-                applyThemeMode(saved || 'dark');
+                applyThemeMode(saved || 'mikenzy');
             } catch {}
             try {
                 const savedEdits = localStorage.getItem('perf::byLevelEdits');
@@ -1579,7 +1445,7 @@
             const themeBtn = document.getElementById('theme-toggle');
             if (themeBtn) {
                 themeBtn.addEventListener('click', () => {
-                    const themes = ['dark', 'purple', 'light'];
+                    const themes = ['dark', 'mikenzy', 'light'];
                     const current = getCurrentThemeMode();
                     const next = themes[(themes.indexOf(current) + 1) % themes.length];
                     applyThemeMode(next);
