@@ -485,8 +485,10 @@
                         <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
                             <tr>
                                 <th class="px-2 py-2">Rating</th>
-                                <th class="px-2 py-2 w-24">Count</th>
+                                <th class="px-2 py-2 w-24">Actual Count</th>
+                                <th class="px-2 py-2 text-right">Scenario Count</th>
                                 <th class="px-2 py-2 text-right">Actual %</th>
+                                <th class="px-2 py-2 text-right">Scenario %</th>
                                 <th class="px-2 py-2 text-right">Target %</th>
                                 <th class="px-2 py-2 text-right">Diff</th>
                             </tr>
@@ -708,6 +710,32 @@
                             Click "Run Analysis" to get intelligent insights.
                         </div>
                     </div>
+                </div>
+
+                <div class="card p-6">
+                    <div class="flex justify-between items-start gap-3 mb-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Performance Scenarios</h3>
+                            <p class="text-sm text-slate-400 mt-1">Simulate the impact of performance improvement initiatives on the current filtered ratings.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <label for="perf-scenario-source" class="text-xs text-slate-400">Improve employees from</label>
+                        <select id="perf-scenario-source" class="p-2 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200" aria-label="Scenario source rating">
+                            <option value="1">1 • Poor</option>
+                            <option value="2" selected>2 • Satisfactory</option>
+                            <option value="3">3 • Good</option>
+                            <option value="4">4 • Exceeds</option>
+                        </select>
+                        <label for="perf-scenario-rate" class="text-xs text-slate-400">at an improvement rate of</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="perf-scenario-rate" value="20" min="0" max="100" class="w-20 p-2 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200" aria-label="Scenario improvement rate">
+                            <span class="text-xs text-slate-400">%</span>
+                        </div>
+                        <button id="perf-run-scenario" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded">Run Scenario</button>
+                        <button id="perf-reset-scenario" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded hidden">Clear Scenario</button>
+                    </div>
+                    <div id="perf-scenario-status" class="mt-3 text-xs text-slate-400">Run a scenario to compare the simulated distribution against the current actual ratings.</div>
                 </div>
                 
                 <div class="card p-6">
@@ -1128,6 +1156,11 @@
         let yoyEnabled = false;
         let yoyCounts = [0,0,0,0,0];
         let yoyTotal = 0;
+        let performanceScenario = {
+            active: false,
+            sourceRating: 2,
+            improvementRate: 20
+        };
         const SCREENSAVER_IDLE_MS = 15000;
         const SCREENSAVER_STEP_MS = 2600;
         let screensaverEnabled = false;
@@ -1193,6 +1226,11 @@
         const perfResetBtn = document.getElementById('perf-reset');
         const perfExportBtn = document.getElementById('perf-export');
         const perfScopeNoteEl = document.getElementById('perf-scope-note');
+        const perfScenarioSourceEl = document.getElementById('perf-scenario-source');
+        const perfScenarioRateEl = document.getElementById('perf-scenario-rate');
+        const perfScenarioRunBtn = document.getElementById('perf-run-scenario');
+        const perfScenarioResetBtn = document.getElementById('perf-reset-scenario');
+        const perfScenarioStatusEl = document.getElementById('perf-scenario-status');
          let currCode = 'OMR';
         const LEVEL_WHO_LABELS = {
             N1: 'Chiefs',
@@ -1682,6 +1720,16 @@
                     downloadScenarioCSV();
                 });
             }
+            if (perfScenarioRunBtn) {
+                perfScenarioRunBtn.addEventListener('click', () => {
+                    runPerformanceScenario();
+                });
+            }
+            if (perfScenarioResetBtn) {
+                perfScenarioResetBtn.addEventListener('click', () => {
+                    resetPerformanceScenario();
+                });
+            }
             const shareBtn = document.getElementById('share-to-salaries');
             if (shareBtn) {
                 shareBtn.addEventListener('click', () => {
@@ -1710,6 +1758,7 @@
 
             // Initial Render
             renderActualsTable();
+            syncPerformanceScenarioUi();
             updateStats();
             updateChartHeader();
             const drillClose = document.getElementById('drill-close');
@@ -2746,6 +2795,118 @@
             }
         }
 
+        function getActivePerformanceScenario() {
+            if (!performanceScenario.active) return null;
+            const sourceRating = parseInt(String(perfScenarioSourceEl ? perfScenarioSourceEl.value : performanceScenario.sourceRating), 10);
+            const improvementRate = parseFloat(String(perfScenarioRateEl ? perfScenarioRateEl.value : performanceScenario.improvementRate));
+            if (!Number.isFinite(sourceRating) || sourceRating < 1 || sourceRating > 4) return null;
+            if (!Number.isFinite(improvementRate) || improvementRate < 0) return null;
+            const safeRate = Math.min(100, Math.max(0, improvementRate));
+            const originalCounts = actualCounts.slice();
+            const scenarioCounts = originalCounts.slice();
+            const sourceIndex = sourceRating - 1;
+            const targetIndex = sourceIndex + 1;
+            const employeesToImprove = Math.floor((scenarioCounts[sourceIndex] || 0) * (safeRate / 100));
+            scenarioCounts[sourceIndex] = Math.max(0, (scenarioCounts[sourceIndex] || 0) - employeesToImprove);
+            scenarioCounts[targetIndex] = (scenarioCounts[targetIndex] || 0) + employeesToImprove;
+            return {
+                sourceRating,
+                targetRating: targetIndex + 1,
+                improvementRate: safeRate,
+                employeesToImprove,
+                originalCounts,
+                scenarioCounts,
+                total: scenarioCounts.reduce((sum, count) => sum + (count || 0), 0)
+            };
+        }
+
+        function syncPerformanceScenarioUi() {
+            if (perfScenarioRunBtn) perfScenarioRunBtn.classList.toggle('hidden', !!performanceScenario.active);
+            if (perfScenarioResetBtn) perfScenarioResetBtn.classList.toggle('hidden', !performanceScenario.active);
+            if (perfScenarioSourceEl) perfScenarioSourceEl.value = String(performanceScenario.sourceRating || 2);
+            if (perfScenarioRateEl) perfScenarioRateEl.value = String(performanceScenario.improvementRate ?? 20);
+            const scenario = getActivePerformanceScenario();
+            if (perfScenarioStatusEl) {
+                if (!scenario) {
+                    perfScenarioStatusEl.textContent = 'Run a scenario to compare the simulated distribution against the current actual ratings.';
+                } else {
+                    const fromLabel = CATEGORIES[scenario.sourceRating - 1]?.label || `R${scenario.sourceRating}`;
+                    const toLabel = CATEGORIES[scenario.targetRating - 1]?.label || `R${scenario.targetRating}`;
+                    perfScenarioStatusEl.textContent = `${scenario.employeesToImprove} employees move from ${fromLabel} to ${toLabel} at ${scenario.improvementRate.toFixed(0)}% based on the current filtered view.`;
+                }
+            }
+        }
+
+        function renderPerformanceScenarioSummary(scenario = getActivePerformanceScenario()) {
+            const content = document.getElementById('insights-content');
+            if (!content) return;
+            if (!scenario) {
+                content.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500">Click "Run Analysis" to get intelligent insights.</div>`;
+                return;
+            }
+            const total = scenario.total || 1;
+            const fromLabel = CATEGORIES[scenario.sourceRating - 1]?.label || `R${scenario.sourceRating}`;
+            const toLabel = CATEGORIES[scenario.targetRating - 1]?.label || `R${scenario.targetRating}`;
+            const beforeSource = scenario.originalCounts[scenario.sourceRating - 1] || 0;
+            const afterSource = scenario.scenarioCounts[scenario.sourceRating - 1] || 0;
+            const beforeTarget = scenario.originalCounts[scenario.targetRating - 1] || 0;
+            const afterTarget = scenario.scenarioCounts[scenario.targetRating - 1] || 0;
+            const beforeTargetPct = total ? (beforeTarget / total) * 100 : 0;
+            const afterTargetPct = total ? (afterTarget / total) * 100 : 0;
+            const alignmentBefore = scenario.originalCounts.reduce((sum, count, idx) => {
+                const pct = total ? (count / total) * 100 : 0;
+                return sum + Math.abs(pct - Number(targets[idx] || 0));
+            }, 0);
+            const alignmentAfter = scenario.scenarioCounts.reduce((sum, count, idx) => {
+                const pct = total ? (count / total) * 100 : 0;
+                return sum + Math.abs(pct - Number(targets[idx] || 0));
+            }, 0);
+            const direction = alignmentAfter < alignmentBefore ? 'improves' : alignmentAfter > alignmentBefore ? 'widens' : 'maintains';
+            content.innerHTML = `
+                <div class="mb-3 text-slate-200">
+                    Scenario shifts <b>${scenario.employeesToImprove}</b> employees from <b>${fromLabel}</b> to <b>${toLabel}</b> using a <b>${scenario.improvementRate.toFixed(0)}%</b> improvement rate on the current filtered population.
+                </div>
+                <div class="mb-2 text-slate-300">
+                    <b>${fromLabel}</b> moves from <b>${beforeSource}</b> to <b>${afterSource}</b>, while <b>${toLabel}</b> moves from <b>${beforeTarget}</b> to <b>${afterTarget}</b>.
+                </div>
+                <div class="mb-2 text-slate-300">
+                    The receiving rating rises from <b>${beforeTargetPct.toFixed(1)}%</b> to <b>${afterTargetPct.toFixed(1)}%</b> of the filtered population.
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-700">
+                    <span class="text-purple-400 font-bold text-xs uppercase">Executive Summary</span>
+                    <p class="text-slate-400 mt-1">
+                        This scenario <b>${direction}</b> alignment to the target curve by moving lower-rated employees up one level without changing total headcount. Use the chart and Actual Ratings table to compare the original distribution against the simulated outcome.
+                    </p>
+                </div>
+            `;
+        }
+
+        function runPerformanceScenario() {
+            const sourceRating = parseInt(String(perfScenarioSourceEl ? perfScenarioSourceEl.value : '0'), 10);
+            const improvementRate = parseFloat(String(perfScenarioRateEl ? perfScenarioRateEl.value : ''));
+            if (!Number.isFinite(sourceRating) || sourceRating < 1 || sourceRating > 4 || !Number.isFinite(improvementRate) || improvementRate < 0 || improvementRate > 100) {
+                showToast('Please enter valid scenario parameters');
+                return;
+            }
+            performanceScenario.active = true;
+            performanceScenario.sourceRating = sourceRating;
+            performanceScenario.improvementRate = improvementRate;
+            syncPerformanceScenarioUi();
+            renderActualsTable();
+            updateChart();
+            renderPerformanceScenarioSummary();
+            showToast('Performance scenario applied');
+        }
+
+        function resetPerformanceScenario() {
+            performanceScenario.active = false;
+            syncPerformanceScenarioUi();
+            renderActualsTable();
+            updateChart();
+            renderPerformanceScenarioSummary(null);
+            showToast('Scenario cleared');
+        }
+
         function getChartThemeTokens() {
             const isLight = document.body.classList.contains('theme-light');
             return isLight
@@ -2926,6 +3087,9 @@
             const total = totalRecords || 1;
             const actualPercents = actualCounts.map(c => parseFloat(((c / total) * 100).toFixed(1)));
             const expectedCounts = targets.map(t => Math.round((t / 100) * total));
+            const scenario = getActivePerformanceScenario();
+            const scenarioCounts = scenario ? scenario.scenarioCounts.slice() : null;
+            const scenarioPercents = scenario ? scenarioCounts.map(c => parseFloat((((c || 0) / (scenario.total || 1)) * 100).toFixed(1))) : null;
             const baseDatasets = [
                 {
                     label: chartMode === 'percent' ? 'Target %' : 'Target',
@@ -2976,6 +3140,36 @@
                     order: 2
                 }
             ];
+            const scenarioDatasets = [];
+            if (scenario && scenarioCounts) {
+                scenarioDatasets.push(
+                    {
+                        label: chartMode === 'percent' ? 'Scenario Trend' : 'Scenario Trend',
+                        data: chartMode === 'percent' ? scenarioPercents : scenarioCounts,
+                        type: 'line',
+                        borderColor: '#60a5fa',
+                        borderWidth: 3,
+                        borderDash: [8, 4],
+                        pointRadius: 4,
+                        pointBackgroundColor: '#1d4ed8',
+                        pointBorderColor: '#93c5fd',
+                        fill: false,
+                        order: 1,
+                        tension: 0.3
+                    },
+                    {
+                        label: chartMode === 'percent' ? 'Scenario Bar' : 'Scenario Bar',
+                        data: chartMode === 'percent' ? scenarioPercents : scenarioCounts,
+                        backgroundColor: 'rgba(96, 165, 250, 0.16)',
+                        borderColor: 'rgba(96, 165, 250, 0.7)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: 0.55,
+                        categoryPercentage: 0.8,
+                        order: 2
+                    }
+                );
+            }
             // Append role curve if present
             const roleDatasets = [];
             if (roleCurve && roleCurve.counts) {
@@ -3009,23 +3203,34 @@
                     tension: 0.25
                 });
             }
-            chartInstance.data.datasets = [...baseDatasets, ...yoyDatasets, ...roleDatasets];
+            chartInstance.data.datasets = [...baseDatasets, ...scenarioDatasets, ...yoyDatasets, ...roleDatasets];
             chartInstance.options.scales.y.ticks.callback = v => chartMode === 'percent' ? v + '%' : v;
             chartInstance.options.plugins.tooltip.callbacks.label = function(context) {
                 const idx = context.dataIndex;
                 const total = totalRecords || 1;
                 const exp = Math.round((targets[idx] / 100) * total);
+                const scenCount = scenarioCounts ? (scenarioCounts[idx] || 0) : 0;
+                const scenPct = scenarioPercents ? (scenarioPercents[idx] || 0) : 0;
                 if (chartMode === 'percent') {
                     const actPct = actualPercents[idx];
                     const tgtPct = targets[idx];
                     const gapHeads = exp - (actualCounts[idx] || 0);
                     const pp = parseFloat((actPct - tgtPct).toFixed(1));
+                    if (/Scenario/.test(context.dataset.label)) {
+                        const deltaHeads = scenCount - (actualCounts[idx] || 0);
+                        const deltaPct = parseFloat((scenPct - actPct).toFixed(1));
+                        return `${context.dataset.label}: ${scenPct}% (vs actual: ${deltaHeads >=0 ? '+'+deltaHeads : deltaHeads} heads, ${deltaPct >=0 ? '+'+deltaPct : deltaPct} pp)`;
+                    }
                     if (/Actual/.test(context.dataset.label)) {
                         return `${context.dataset.label}: ${actPct}% (gap: ${gapHeads >=0 ? '+'+gapHeads : gapHeads} heads, ${pp >=0 ? '+'+pp : pp} pp)`;
                     }
                     return `${context.dataset.label}: ${context.raw}%`;
                 } else {
                     const val = context.raw;
+                    if (/Scenario/.test(context.dataset.label)) {
+                        const delta = scenCount - (actualCounts[idx] || 0);
+                        return `${context.dataset.label}: ${val} (vs actual: ${delta >=0 ? '+'+delta : delta})`;
+                    }
                     if (/Actual/.test(context.dataset.label)) {
                         const gap = exp - (actualCounts[idx] || 0);
                         return `${context.dataset.label}: ${val} (gap: ${gap >=0 ? '+'+gap : gap})`;
@@ -3072,10 +3277,14 @@
         function renderActualsTable() {
             const total = totalRecords || 1;
             const yc = yoyEnabled ? yoyCounts : null;
+            const scenario = getActivePerformanceScenario();
+            const scenarioTotal = scenario ? (scenario.total || 1) : 1;
             
             CATEGORIES.forEach((cat, i) => {
                 const count = actualCounts[i];
                 const actualPct = (count / total) * 100;
+                const scenarioCount = scenario ? (scenario.scenarioCounts[i] || 0) : null;
+                const scenarioPct = scenario ? ((scenarioCount / scenarioTotal) * 100) : null;
                 const targetPct = targets[i];
                 const diff = actualPct - targetPct;
                 
@@ -3098,7 +3307,9 @@
                             class="w-16 p-1 text-center rounded bg-slate-800 border border-slate-600 text-white text-xs focus:border-blue-500 outline-none"
                             onchange="handleManualCountChange(${i}, this.value)">${deltaHtml}
                     </td>
+                    <td class="px-2 py-3 text-right ${scenario ? 'text-sky-300 font-bold' : 'text-slate-600'}">${scenario ? scenarioCount : '–'}</td>
                     <td class="px-2 py-3 text-right text-slate-300">${actualPct.toFixed(1)}%</td>
+                    <td class="px-2 py-3 text-right ${scenario ? 'text-sky-300 font-bold' : 'text-slate-600'}">${scenario ? `${scenarioPct.toFixed(1)}%` : '–'}</td>
                     <td class="px-2 py-3 text-right text-slate-500">${targetPct}%</td>
                     <td class="px-2 py-3 text-right ${diffClass}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}%</td>
                 `;
@@ -3962,12 +4173,18 @@
         }
 
         function generateInsights() {
-            // No real OpenAI call here, using rule-based "AI" logic
-            // In a real app, this would fetch from an API
+            if (performanceScenario.active && getActivePerformanceScenario()) {
+                renderPerformanceScenarioSummary();
+                return;
+            }
             runAIAnalysis();
         }
 
         function runAIAnalysis() {
+            if (performanceScenario.active && getActivePerformanceScenario()) {
+                renderPerformanceScenarioSummary();
+                return;
+            }
             const btn = document.getElementById('ai-btn');
             const content = document.getElementById('insights-content');
             
@@ -4045,6 +4262,11 @@
             const ebtn = document.getElementById('ai-exec');
             const content = document.getElementById('insights-content');
             if (!ebtn || !content) return;
+            if (performanceScenario.active && getActivePerformanceScenario()) {
+                renderPerformanceScenarioSummary();
+                showToast('Scenario summary generated');
+                return;
+            }
             ebtn.textContent = 'Generating…';
             ebtn.disabled = true;
             try {
