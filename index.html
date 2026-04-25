@@ -179,6 +179,78 @@
         body.theme-purple ::-webkit-scrollbar-thumb { background: var(--primary); }
         body.theme-mikenzy ::-webkit-scrollbar-thumb:hover,
         body.theme-purple ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        body.theme-maroon {
+            background: linear-gradient(180deg, #170b10 0%, #220e17 46%, #10090d 100%);
+            color: #f7ebe4;
+        }
+        body.theme-maroon::before {
+            background:
+                radial-gradient(circle at 18% 12%, rgba(120, 19, 44, 0.28), transparent 30%),
+                radial-gradient(circle at 82% 10%, rgba(181, 138, 82, 0.12), transparent 22%),
+                radial-gradient(circle at 50% 100%, rgba(74, 14, 31, 0.16), transparent 34%);
+        }
+        body.theme-maroon .card {
+            background: linear-gradient(180deg, rgba(45, 17, 28, 0.97) 0%, rgba(28, 11, 18, 0.99) 100%);
+            border: 1px solid rgba(181, 138, 82, 0.24);
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(181, 138, 82, 0.05);
+        }
+        body.theme-maroon .card:hover {
+            border-color: rgba(181, 138, 82, 0.48);
+            box-shadow:
+                0 18px 42px rgba(0, 0, 0, 0.38),
+                0 0 0 1px rgba(181, 138, 82, 0.12),
+                0 10px 24px rgba(120, 19, 44, 0.18);
+        }
+        body.theme-maroon .input-dark {
+            background-color: rgba(24, 10, 16, 0.96);
+            border-color: rgba(181, 138, 82, 0.28);
+            color: #f7ebe4;
+        }
+        body.theme-maroon .input-dark:focus { border-color: #d1a15e; }
+        body.theme-maroon .text-white { color: #f7ebe4 !important; }
+        body.theme-maroon .text-slate-500 { color: rgba(239, 220, 210, 0.68) !important; }
+        body.theme-maroon .text-slate-400 { color: rgba(239, 220, 210, 0.76) !important; }
+        body.theme-maroon .text-slate-300 { color: rgba(247, 235, 228, 0.86) !important; }
+        body.theme-maroon .text-slate-200 { color: rgba(247, 235, 228, 0.94) !important; }
+        body.theme-maroon ::-webkit-scrollbar-track { background: #14090d; }
+        body.theme-maroon ::-webkit-scrollbar-thumb { background: #7b1f3b; }
+        body.theme-maroon ::-webkit-scrollbar-thumb:hover { background: #d1a15e; }
+        body.theme-gold {
+            background: linear-gradient(180deg, #1a140c 0%, #21170d 48%, #110d08 100%);
+            color: #f8f0e1;
+        }
+        body.theme-gold::before {
+            background:
+                radial-gradient(circle at 18% 12%, rgba(130, 84, 33, 0.22), transparent 30%),
+                radial-gradient(circle at 82% 10%, rgba(205, 162, 94, 0.18), transparent 24%),
+                radial-gradient(circle at 50% 100%, rgba(110, 72, 26, 0.14), transparent 34%);
+        }
+        body.theme-gold .card {
+            background: linear-gradient(180deg, rgba(48, 34, 19, 0.97) 0%, rgba(27, 20, 11, 0.99) 100%);
+            border: 1px solid rgba(205, 162, 94, 0.24);
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(205, 162, 94, 0.05);
+        }
+        body.theme-gold .card:hover {
+            border-color: rgba(205, 162, 94, 0.5);
+            box-shadow:
+                0 18px 42px rgba(0, 0, 0, 0.36),
+                0 0 0 1px rgba(205, 162, 94, 0.12),
+                0 10px 24px rgba(130, 84, 33, 0.18);
+        }
+        body.theme-gold .input-dark {
+            background-color: rgba(24, 17, 10, 0.96);
+            border-color: rgba(205, 162, 94, 0.28);
+            color: #f8f0e1;
+        }
+        body.theme-gold .input-dark:focus { border-color: #d3a457; }
+        body.theme-gold .text-white { color: #f8f0e1 !important; }
+        body.theme-gold .text-slate-500 { color: rgba(239, 226, 203, 0.68) !important; }
+        body.theme-gold .text-slate-400 { color: rgba(239, 226, 203, 0.76) !important; }
+        body.theme-gold .text-slate-300 { color: rgba(248, 240, 225, 0.86) !important; }
+        body.theme-gold .text-slate-200 { color: rgba(248, 240, 225, 0.94) !important; }
+        body.theme-gold ::-webkit-scrollbar-track { background: #151008; }
+        body.theme-gold ::-webkit-scrollbar-thumb { background: #8a5d2d; }
+        body.theme-gold ::-webkit-scrollbar-thumb:hover { background: #d3a457; }
 
         .text-blue-400,
         .text-blue-500 { color: var(--accent) !important; }
@@ -403,6 +475,30 @@
         body.theme-mikenzy .curve-metrics-subtle,
         body.theme-purple .curve-metrics-subtle {
             color: #eed8ff;
+        }
+        body.theme-maroon .curve-metrics {
+            background: rgba(64, 18, 32, 0.74);
+            border-color: rgba(181, 138, 82, 0.24);
+        }
+        body.theme-maroon .curve-metrics-header,
+        body.theme-maroon .curve-metrics-label {
+            background: rgba(123, 31, 59, 0.16);
+            color: #fff0ea;
+        }
+        body.theme-maroon .curve-metrics-subtle {
+            color: #f2d6cb;
+        }
+        body.theme-gold .curve-metrics {
+            background: rgba(71, 47, 21, 0.72);
+            border-color: rgba(205, 162, 94, 0.24);
+        }
+        body.theme-gold .curve-metrics-header,
+        body.theme-gold .curve-metrics-label {
+            background: rgba(138, 93, 45, 0.18);
+            color: #fff3df;
+        }
+        body.theme-gold .curve-metrics-subtle {
+            color: #f1dcc0;
         }
         body.theme-light .target-bar-track {
             background: rgba(226, 232, 240, 0.85);
@@ -1146,17 +1242,25 @@
 
         function applyThemeMode(mode) {
             const nextMode = mode === 'purple' ? 'mikenzy' : mode;
-            document.body.classList.remove('theme-light', 'theme-purple', 'theme-mikenzy');
+            document.body.classList.remove('theme-light', 'theme-purple', 'theme-mikenzy', 'theme-maroon', 'theme-gold');
             if (nextMode === 'light') {
                 document.body.classList.add('theme-light');
             } else if (nextMode === 'mikenzy') {
                 document.body.classList.add('theme-mikenzy');
+            } else if (nextMode === 'maroon') {
+                document.body.classList.add('theme-maroon');
+            } else if (nextMode === 'gold') {
+                document.body.classList.add('theme-gold');
             }
             try { applyChartTheme(); } catch {}
         }
 
         function getCurrentThemeMode() {
-            return (document.body.classList.contains('theme-mikenzy') || document.body.classList.contains('theme-purple'))
+            return document.body.classList.contains('theme-maroon')
+                ? 'maroon'
+                : document.body.classList.contains('theme-gold')
+                    ? 'gold'
+                : (document.body.classList.contains('theme-mikenzy') || document.body.classList.contains('theme-purple'))
                 ? 'mikenzy'
                 : document.body.classList.contains('theme-light')
                     ? 'light'
@@ -1289,7 +1393,7 @@
         function runScreensaverStep() {
             const actions = [
                 () => {
-                    applyThemeMode(getCurrentThemeMode() === 'mikenzy' ? 'dark' : 'mikenzy');
+                    applyThemeMode(getCurrentThemeMode() === 'mikenzy' ? 'maroon' : 'mikenzy');
                     return true;
                 },
                 () => {
@@ -1451,7 +1555,7 @@
             const themeBtn = document.getElementById('theme-toggle');
             if (themeBtn) {
                 themeBtn.addEventListener('click', () => {
-                    const themes = ['dark', 'mikenzy', 'light'];
+                    const themes = ['dark', 'mikenzy', 'maroon', 'gold', 'light'];
                     const current = getCurrentThemeMode();
                     const next = themes[(themes.indexOf(current) + 1) % themes.length];
                     applyThemeMode(next);
@@ -2802,6 +2906,8 @@
 
         function getChartThemeTokens() {
             const isLight = document.body.classList.contains('theme-light');
+            const isMaroon = document.body.classList.contains('theme-maroon');
+            const isGold = document.body.classList.contains('theme-gold');
             return isLight
                 ? {
                     tick: '#111827',
@@ -2812,6 +2918,26 @@
                     tooltipTitle: '#111827',
                     tooltipBody: '#111827'
                 }
+                : isMaroon
+                    ? {
+                        tick: '#f2ddd4',
+                        grid: 'rgba(209, 161, 94, 0.18)',
+                        barValue: '#fff1ea',
+                        tooltipBg: 'rgba(40, 13, 22, 0.97)',
+                        tooltipBorder: 'rgba(209, 161, 94, 0.32)',
+                        tooltipTitle: '#fff1ea',
+                        tooltipBody: '#f2ddd4'
+                    }
+                    : isGold
+                        ? {
+                            tick: '#f3e2c2',
+                            grid: 'rgba(211, 164, 87, 0.18)',
+                            barValue: '#fff4df',
+                            tooltipBg: 'rgba(41, 28, 14, 0.97)',
+                            tooltipBorder: 'rgba(211, 164, 87, 0.34)',
+                            tooltipTitle: '#fff4df',
+                            tooltipBody: '#f3e2c2'
+                        }
                 : {
                     tick: '#94a3b8',
                     grid: '#334155',
