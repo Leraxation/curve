@@ -223,7 +223,7 @@
             background: rgba(18, 18, 18, 0.70);
         }
         .level-rating-matrix {
-            margin-top: 0.82rem;
+            margin-top: 0.6rem;
         }
         .dept-rating-matrix .curve-metrics-row {
             grid-template-columns: 1.55fr repeat(5, minmax(0, 1fr));
@@ -243,11 +243,11 @@
             grid-template-columns: 1.15fr repeat(5, minmax(0, 1fr));
         }
         .curve-metrics-cell {
-            padding: 0.42rem 0.46rem;
+            padding: 0.34rem 0.4rem;
             border-right: 1px solid rgba(184, 134, 11, 0.16);
             text-align: center;
-            font-size: 0.88rem;
-            line-height: 1.08;
+            font-size: 0.85rem;
+            line-height: 1.02;
         }
         .curve-metrics-cell:last-child {
             border-right: 0;
@@ -258,8 +258,29 @@
             font-weight: 700;
         }
         .curve-metrics-header .curve-metrics-cell {
-            line-height: 1.25;
+            line-height: 1.1;
             word-break: break-word;
+        }
+        #perf-level-card th,
+        #perf-level-card td {
+            line-height: 0.98;
+        }
+        #perf-level-card thead th {
+            padding-top: 0.28rem;
+            padding-bottom: 0.28rem;
+        }
+        #perf-level-card tbody td {
+            padding-top: 0.22rem;
+            padding-bottom: 0.22rem;
+        }
+        #perf-level-card tbody tr {
+            vertical-align: middle;
+        }
+        #perf-level-card .perf-level-label {
+            line-height: 0.95;
+        }
+        #perf-level-card .perf-level-who {
+            line-height: 1.02;
         }
         .curve-metrics-label {
             text-align: left;
@@ -653,37 +674,37 @@
                         </div>
                         <div id="curve-metrics" class="curve-metrics"></div>
                         <div id="perf-level-card" class="curve-metrics level-rating-matrix">
-                            <div class="flex flex-wrap items-center justify-between gap-3 px-3 py-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
                                 <h3 class="text-base font-bold text-white">Performance Rating by Level</h3>
                                 <div class="flex items-center gap-2">
                                     <label class="text-xs text-slate-400">Department</label>
-                                    <select id="perf-dept" class="p-1 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200">
+                                    <select id="perf-dept" class="px-2 py-0.5 text-xs rounded bg-slate-900 border border-slate-700 text-slate-200">
                                         <option value="">All</option>
                                     </select>
-                                    <button id="perf-reset" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Reset Edits</button>
-                                    <button id="perf-export" class="text-xs px-3 py-1 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Export CSV</button>
+                                    <button id="perf-reset" class="text-xs px-3 py-0.5 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Reset Edits</button>
+                                    <button id="perf-export" class="text-xs px-3 py-0.5 rounded border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700">Export CSV</button>
                                 </div>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs">
                                     <thead class="bg-slate-900 text-slate-400">
                                         <tr>
-                                            <th class="px-2 py-2 text-left">Level</th>
-                                            <th class="px-2 py-2 text-left">Who</th>
-                                            <th class="px-2 py-2 text-right">R1</th>
-                                            <th class="px-2 py-2 text-right">R2</th>
-                                            <th class="px-2 py-2 text-right">R3</th>
-                                            <th class="px-2 py-2 text-right">R4</th>
-                                            <th class="px-2 py-2 text-right">R5</th>
-                                            <th class="px-2 py-2 text-right">Unfavorable %</th>
-                                            <th class="px-2 py-2 text-right">Favorable %</th>
-                                            <th class="px-2 py-2 text-right">Average</th>
+                                            <th class="px-2 py-1 text-left">Level</th>
+                                            <th class="px-2 py-1 text-left">Who</th>
+                                            <th class="px-2 py-1 text-right">R1</th>
+                                            <th class="px-2 py-1 text-right">R2</th>
+                                            <th class="px-2 py-1 text-right">R3</th>
+                                            <th class="px-2 py-1 text-right">R4</th>
+                                            <th class="px-2 py-1 text-right">R5</th>
+                                            <th class="px-2 py-1 text-right">Unfavorable %</th>
+                                            <th class="px-2 py-1 text-right">Favorable %</th>
+                                            <th class="px-2 py-1 text-right">Average</th>
                                         </tr>
                                     </thead>
                                     <tbody id="perf-body" class="divide-y divide-slate-800"></tbody>
                                 </table>
                             </div>
-                            <div id="perf-scope-note" class="px-3 py-2 text-[11px] text-slate-400">Targets: 5%, 15%, 60%, 15%, 5% (R1-R5)</div>
+                            <div id="perf-scope-note" class="px-3 py-1 text-[11px] text-slate-400">Targets: 5%, 15%, 60%, 15%, 5% (R1-R5)</div>
                         </div>
                         <div id="level-rating-matrix" class="curve-metrics dept-rating-matrix"></div>
                     </div>
@@ -3471,19 +3492,19 @@
             const cellInput = ({ rowType, level, col, value, min, max, step, tone, readonly, bg }) => {
                 const ro = readonly ? 'readonly' : '';
                 const isPct = col === 'unfavorable' || col === 'favorable';
-                const baseCls = `w-20 p-1 rounded border border-slate-600/70 bg-transparent text-right text-xs focus:outline-none focus:border-amber-400 ${isPct ? 'pr-5' : ''}`;
+                const baseCls = `w-20 h-6 px-2 py-0 rounded border border-slate-600/70 bg-transparent text-right text-xs leading-none focus:outline-none focus:border-amber-400 ${isPct ? 'pr-5' : ''}`;
                 const toneCls = tone === 'muted' ? 'text-slate-300' : 'text-white font-bold';
                 const roCls = readonly ? 'opacity-80 cursor-not-allowed' : '';
                 const v = (value == null || value === '') ? '' : String(value);
                 const style = bg ? ` style="background:${bg}"` : '';
                 const suffix = isPct ? `<span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400">%</span>` : '';
-                return `<td class="px-2 py-2 text-right relative"${style}><input data-perf-input="1" data-row="${rowType}" data-level="${level}" data-col="${col}" type="number" min="${min}" max="${max}" step="${step}" value="${v}" class="${baseCls} ${toneCls} ${roCls}" ${ro}>${suffix}</td>`;
+                return `<td class="px-2 py-1 text-right relative align-middle"${style}><input data-perf-input="1" data-row="${rowType}" data-level="${level}" data-col="${col}" type="number" min="${min}" max="${max}" step="${step}" value="${v}" class="${baseCls} ${toneCls} ${roCls}" ${ro}>${suffix}</td>`;
             };
 
             const targetRow = `
                 <tr>
-                    <td class="px-2 py-2 text-left text-slate-300">Target %</td>
-                    <td class="px-2 py-2 text-left text-slate-500">–</td>
+                    <td class="px-2 py-1 text-left text-slate-300 perf-level-label">Target %</td>
+                    <td class="px-2 py-1 text-left text-slate-500 perf-level-who">–</td>
                     ${target.map((p, i) => cellInput({ rowType:'target', level:'TARGET', col:`r${i+1}`, value:Number(p).toFixed(2), min:0, max:100, step:0.01, tone:'muted', readonly:false, bg:CATEGORIES[i].bg })).join('')}
                     ${cellInput({ rowType:'target', level:'TARGET', col:'unfavorable', value:'20.00', min:0, max:100, step:0.01, tone:'muted', readonly:true })}
                     ${cellInput({ rowType:'target', level:'TARGET', col:'favorable', value:'20.00', min:0, max:100, step:0.01, tone:'muted', readonly:true })}
@@ -3518,8 +3539,8 @@
 
             const bodyRows = effectiveRows.map(r => `
                 <tr>
-                    <td class="px-2 py-2 text-left text-white font-bold">${r.level}</td>
-                    <td class="px-2 py-2 text-left text-slate-300">${r.who}</td>
+                    <td class="px-2 py-1 text-left text-white font-bold perf-level-label">${r.level}</td>
+                    <td class="px-2 py-1 text-left text-slate-300 perf-level-who">${r.who}</td>
                     ${r.counts.map((c, i) => cellInput({ rowType:'level', level:r.level, col:`r${i+1}`, value:c, min:0, max:1000000000, step:1, tone:'strong', readonly:false, bg:CATEGORIES[i].bg })).join('')}
                     ${cellInput({ rowType:'level', level:r.level, col:'unfavorable', value:Number(r.unfavorable).toFixed(2), min:0, max:100, step:0.01, tone:'muted', readonly:false })}
                     ${cellInput({ rowType:'level', level:r.level, col:'favorable', value:Number(r.favorable).toFixed(2), min:0, max:100, step:0.01, tone:'muted', readonly:false })}
@@ -3529,8 +3550,8 @@
 
             const totalRow = `
                 <tr class="bg-slate-900/50">
-                    <td class="px-2 py-2 text-left text-white font-extrabold">TOTAL</td>
-                    <td class="px-2 py-2 text-left text-slate-300">–</td>
+                    <td class="px-2 py-1 text-left text-white font-extrabold perf-level-label">TOTAL</td>
+                    <td class="px-2 py-1 text-left text-slate-300 perf-level-who">–</td>
                     ${totalCounts.map((c, i) => cellInput({ rowType:'total', level:'TOTAL', col:`r${i+1}`, value:c, min:0, max:1000000000, step:1, tone:'strong', readonly:true, bg:CATEGORIES[i].bg })).join('')}
                     ${cellInput({ rowType:'total', level:'TOTAL', col:'unfavorable', value:Number(totalDerived.unfavorable).toFixed(2), min:0, max:100, step:0.01, tone:'muted', readonly:true })}
                     ${cellInput({ rowType:'total', level:'TOTAL', col:'favorable', value:Number(totalDerived.favorable).toFixed(2), min:0, max:100, step:0.01, tone:'muted', readonly:true })}
@@ -3538,7 +3559,7 @@
                 </tr>
             `;
 
-            const hintRow = hasData ? '' : `<tr><td colspan="10" class="px-2 py-3 text-slate-400">Upload a file to auto-calculate. You can also type values manually.</td></tr>`;
+            const hintRow = hasData ? '' : `<tr><td colspan="10" class="px-2 py-2 text-slate-400">Upload a file to auto-calculate. You can also type values manually.</td></tr>`;
             perfBodyEl.innerHTML = `${hintRow}${targetRow}${bodyRows}${totalRow}`;
         }
 
